@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -57,6 +57,9 @@
         "config/commonConfig",
         "dojo/_base/Deferred",
         "esri/dijit/editing/Editor",
+        "esri/dijit/editing/TemplatePicker",
+        "esri/toolbars/draw",
+        "dijit/Dialog",
         "esri/arcgis/utils",
         "esri/layers/FeatureLayer",
         "esri/geometry/Point",
@@ -84,7 +87,10 @@
             CreateGeocoder, 
             config, 
             Deferred, 
-            Editor, 
+            Editor,
+            TemplatePicker,
+            Draw,
+            Dialog,
             arcgisUtils, 
             FeatureLayer,
             Point,
@@ -101,11 +107,11 @@
 
 
               var defaults = {
-                  "webmap":"25977874c66c4c0a8dcc181506c6fb45",
+                "webmap": "d23135d6dab541278025fc6e6997da6f",
                   "bingmapskey": config.bingMapsKey,
                   "sharingurl": document.location.protocol + "//www.arcgis.com",
                   "theme": "blue",  //blue, green black
-                  "proxyurl": "",
+                  "proxyurl": "proxy.ashx",
                   "home_button": true,
                   "locate_button": true,
                   "geocoder": true,
@@ -278,12 +284,70 @@
                         settings: settings
                       };
 
-                      //create the editor, apply snapping and disable the tooltips for the template picker
+                      //sbtest, create template picker instead.
+                      var layers = new Array();
+                      layers[0] = editableLayers[0].featureLayer;
 
-                      editorWidget = new Editor(params, dom.byId('editorDiv'));
-         
-                      editorWidget.startup();
+                      var templatePicker = new TemplatePicker({
+                        featureLayers: layers,
+                        rows: "auto",
+                        columns: 2,
+                        grouping: true,
+                        style: "height: auto; overflow: auto;"
+                      }, "editorDiv");
+                      templatePicker.startup();
 
+
+                      window.myDialog = new Dialog({
+                        title: "My Dialog",
+                        content: "Test content. <button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>",
+                        style: "width: 300px"
+                      });
+
+                      this.templatePicker = templatePicker;
+
+                      var drawToolbar = new Draw(map);
+
+                      var selectedTemplate;
+                      templatePicker.on("selection-change", function () {
+                        if (templatePicker.getSelected()) {
+                          selectedTemplate = templatePicker.getSelected();
+                          
+                        }
+                        switch (selectedTemplate.featureLayer.geometryType) {
+                          case "esriGeometryPoint":
+                            drawToolbar.activate(Draw.POINT);
+                            break;
+                          case "esriGeometryPolyline":
+                            drawToolbar.activate(Draw.POLYLINE);
+                            break;
+                          case "esriGeometryPolygon":
+                            drawToolbar.activate(Draw.POLYGON);
+                            break;
+                        }
+                      });
+
+
+                      drawToolbar.on("draw-end", function (evt) {
+                        drawToolbar.deactivate();
+  
+                        window.myDialog.show();
+
+                        var ok = dojo.byId("OKButton");
+                        this.locationGeometry = evt.geometry;
+
+                        dojo.connect(ok, "onclick", lang.hitch(this,function() {
+
+                          selectedTemplate = this.templatePicker.getSelected();
+                          newGeometry = this.locationGeometry;
+
+                          var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
+                          var newGraphic = new Graphic(newGeometry, null, newAttributes);
+                          selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
+
+                        }));
+
+                      });
 
                       window.map.enableSnapping();
                       if(!dojo.isIE){
@@ -400,7 +464,9 @@
             function adjustPopup() {
               var box = domGeometry.getContentBox(window.map.container);
 
-              var width = 270, height = 300, // defaults
+              //sbtest var width = 270, height = 300, // defaults
+              var width = 500, height = 300
+
                   newWidth = Math.round(box.w * 0.60),
                   newHeight = Math.round(box.h * 0.45);
               if (newWidth < width) {
