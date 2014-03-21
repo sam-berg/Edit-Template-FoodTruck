@@ -1,4 +1,4 @@
-<%@ WebHandler Language="C#" Class="proxy" %>
+<%@ WebHandler Language="C#"  Class="proxy" %>
 
 /*
  * See https://github.com/Esri/resource-proxy for more information
