@@ -60,6 +60,7 @@
           "esri/dijit/editing/TemplatePicker",
           "esri/toolbars/draw",
           "dijit/Dialog",
+          "dijit/form/TextBox",
           "esri/arcgis/utils",
           "esri/layers/FeatureLayer",
           "esri/geometry/Point",
@@ -92,6 +93,7 @@
               TemplatePicker,
               Draw,
               Dialog,
+              TextBox,
               arcgisUtils,
               FeatureLayer,
               Point,
@@ -341,9 +343,25 @@
 
                     window.myDialog.setAttributes = function (feature) {
 
-                      var t = this.get('value');
+                      //major todo
 
-                    };
+                      vComment = dojo.byId("txtComments").value;
+                      vRestaurants = dojo.byId("txtRestaurants").value;
+                      vTimeWeekday = dojo.byId("chkWeekday").checked;
+                      vTimeWeekend = dojo.byId("chkWeekend").checked;
+                      if (vTimeWeekend) {
+                        vTime = 0;
+                      }
+                      else {
+                        vTime = 1;
+                      }
+
+                        feature.attributes.Address = vComment;
+                        feature.attributes.NearbyRestaurants = vRestaurants;
+                        feature.attributes.Time = vTime;
+                      
+
+                      };
 
 
 
@@ -391,6 +409,9 @@
                         selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
 
                         window.myDialog.hide();
+
+                        alert("Thank you for your survey submission.");
+
                       }));
 
                     });
