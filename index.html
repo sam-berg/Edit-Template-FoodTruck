@@ -25,507 +25,528 @@
       var path_location = location.pathname.replace(/\/[^/]+$/, '');
       var dojoConfig = {
         parseOnLoad: true,
-        packages: [ {
-              name: "utilities",
-              location: path_location + '/javascript'
-             },{
-              name: "config",
-              location: path_location 
-             }
+        packages: [{
+          name: "utilities",
+          location: path_location + '/javascript'
+        }, {
+          name: "config",
+          location: path_location
+        }
         ]
       };
     </script>
     <script type="text/javascript" src="//js.arcgis.com/3.9/"></script>
 
     <script type="text/javascript">
-    require([
-        "dojo/parser",
-        "dojo/ready",
-        "dojo/_base/lang",
-        "dojo/_base/Color",
-        "dojo/dom",
-        "dojo/query",
-        "dojo/_base/connect",
-        "dojo/on",
-        "dojo/dom-style",
-        "dojo/_base/array",
-        "dojo/dom-construct",
-        "dojo/dom-geometry",
-        "utilities/app",
-        "utilities/CreateContent",
-        "utilities/CreateGeocoder",
-        "config/commonConfig",
-        "dojo/_base/Deferred",
-        "esri/dijit/editing/Editor",
-        "esri/dijit/editing/TemplatePicker",
-        "esri/toolbars/draw",
-        "dijit/Dialog",
-        "esri/arcgis/utils",
-        "esri/layers/FeatureLayer",
-        "esri/geometry/Point",
-        "esri/symbols/SimpleMarkerSymbol",
-        "esri/symbols/SimpleLineSymbol",
-        "esri/dijit/Legend",
-        "esri/graphic",
-        "esri/lang"
-        ],
-        function(
-            parser, 
-            ready, 
-            lang, 
-            Color, 
-            dom, 
-            query,
-            conn, 
-            on, 
-            domStyle,
-            array, 
-            domConstruct, 
-            domGeometry, 
-            App, 
-            Content,
-            CreateGeocoder, 
-            config, 
-            Deferred, 
-            Editor,
-            TemplatePicker,
-            Draw,
-            Dialog,
-            arcgisUtils, 
-            FeatureLayer,
-            Point,
-            SimpleMarkerSymbol,
-            SimpleLineSymbol,
-            Legend,
-            Graphic,
-            esriLang
-          ){
+      require([
+          "dojo/parser",
+          "dojo/ready",
+          "dojo/_base/lang",
+          "dojo/_base/Color",
+          "dojo/dom",
+          "dojo/query",
+          "dojo/_base/connect",
+          "dojo/on",
+          "dojo/dom-style",
+          "dojo/_base/array",
+          "dojo/dom-construct",
+          "dojo/dom-geometry",
+          "utilities/app",
+          "utilities/CreateContent",
+          "utilities/CreateGeocoder",
+          "config/commonConfig",
+          "dojo/_base/Deferred",
+          "esri/dijit/editing/Editor",
+          "esri/dijit/editing/TemplatePicker",
+          "esri/toolbars/draw",
+          "dijit/Dialog",
+          "esri/arcgis/utils",
+          "esri/layers/FeatureLayer",
+          "esri/geometry/Point",
+          "esri/symbols/SimpleMarkerSymbol",
+          "esri/symbols/SimpleLineSymbol",
+          "esri/dijit/Legend",
+          "esri/graphic",
+          "esri/request",
+          "esri/lang"
+      ],
+          function (
+              parser,
+              ready,
+              lang,
+              Color,
+              dom,
+              query,
+              conn,
+              on,
+              domStyle,
+              array,
+              domConstruct,
+              domGeometry,
+              App,
+              Content,
+              CreateGeocoder,
+              config,
+              Deferred,
+              Editor,
+              TemplatePicker,
+              Draw,
+              Dialog,
+              arcgisUtils,
+              FeatureLayer,
+              Point,
+              SimpleMarkerSymbol,
+              SimpleLineSymbol,
+              Legend,
+              Graphic,
+              esriRequest,
+              esriLang
+            ) {
 
-            
-            ready (function() {
 
-
+            ready(function () {
 
               var defaults = {
                 "webmap": "d23135d6dab541278025fc6e6997da6f",
-                  "bingmapskey": config.bingMapsKey,
-                  "sharingurl": document.location.protocol + "//www.arcgis.com",
-                  "theme": "blue",  //blue, green black
-                  "proxyurl": "proxy.ashx",
-                  "home_button": true,
-                  "locate_button": true,
-                  "geocoder": true,
-                  "helperServices":config.helperServices
+                "bingmapskey": config.bingMapsKey,
+                "sharingurl": document.location.protocol + "//www.arcgis.com",
+                "theme": "blue",  //blue, green black
+                "proxyurl": "proxy.ashx",
+                "home_button": true,
+                "locate_button": true,
+                "geocoder": true,
+                "helperServices": config.helperServices
               };
 
+              //read dialog format
+              var dialogURL = "EditingForm.html";
+              var formRequest = esriRequest({
+                url: dialogURL,
+                handleAs: "text",
+                callbackParamName: "callback"
+              });
+              formRequest.then(
+                function (response) {
+                  console.log("Success: ", response);
+                  
+                  defaults.editingDialogHTML = String(response).replace("\r\n", "");
+                }, function (error) {
+                  console.log("Error: ", error.message);
+                });
+              //
 
               var supportsLocalization = true;
-              var app = new App(defaults,supportsLocalization);
-              on(app, "ready", function(config){
+              var app = new App(defaults, supportsLocalization);
+              on(app, "ready", function (config) {
 
-                 window.options = config;
+                window.options = config;
 
 
                 //apply the specified theme
-                  var ss = document.createElement("link");
-                  ss.type = "text/css";
-                  ss.rel = "stylesheet";
-                  ss.href = "css/" + options.theme + ".css";
-                  document.getElementsByTagName("head")[0].appendChild(ss);
+                var ss = document.createElement("link");
+                ss.type = "text/css";
+                ss.rel = "stylesheet";
+                ss.href = "css/" + options.theme + ".css";
+                document.getElementsByTagName("head")[0].appendChild(ss);
 
 
-                  //Build the user interface for the application. In this case it's a simple app with a header, content and a left (or floating) panel
-                  window.appcontent = new Content();
-                  window.appcontent.createLayout().then(function(){
-                    var itemInfo = window.options.itemInfo || window.options.webmap; 
-                    createMap(itemInfo);
-                  });
+                //Build the user interface for the application. In this case it's a simple app with a header, content and a left (or floating) panel
+                window.appcontent = new Content();
+                window.appcontent.createLayout().then(function () {
+                  var itemInfo = window.options.itemInfo || window.options.webmap;
+                  createMap(itemInfo);
+                });
 
 
               });
 
 
-  
-             function createMap(itemInfo){
-                  var mapDeferred = arcgisUtils.createMap(itemInfo, "map", {
-                    bingMapsKey: window.options.bingmapskey
-                  });
-                  mapDeferred.then(function(response){
-        
-                    window.map = response.map;
+
+              function createMap(itemInfo) {
+                var mapDeferred = arcgisUtils.createMap(itemInfo, "map", {
+                  bingMapsKey: window.options.bingmapskey
+                });
+                mapDeferred.then(function (response) {
+
+                  window.map = response.map;
 
 
-                    //set the title and subtitle in the app's header
-                    document.title = window.options.title || response.itemInfo.item.title;
-                    dom.byId("title").innerHTML = window.options.title || response.itemInfo.item.title;
-                    if(dom.byId("subtitle")){
-                        dom.byId("subtitle").innerHTML =  window.options.subtitle || response.itemInfo.item.snippet || "";
-                    }
+                  //set the title and subtitle in the app's header
+                  document.title = window.options.title || response.itemInfo.item.title;
+                  dom.byId("title").innerHTML = window.options.title || response.itemInfo.item.title;
+                  if (dom.byId("subtitle")) {
+                    dom.byId("subtitle").innerHTML = window.options.subtitle || response.itemInfo.item.snippet || "";
+                  }
 
- 
-                   if(window.map.loaded){
+
+                  if (window.map.loaded) {
                     initUI(response);
-                   }else{
-                    conn.connect(window.map, "onLoad", function(){
-                        initUI(response);
+                  } else {
+                    conn.connect(window.map, "onLoad", function () {
+                      initUI(response);
                     });
-                   }
+                  }
 
 
-                  }, function (error){
+                }, function (error) {
 
-                        alert(window.options.i8n.viewer.errors.message + " : " + error.message);
-                  });
+                  alert(window.options.i8n.viewer.errors.message + " : " + error.message);
+                });
 
-             }
+              }
 
 
 
-            function initUI(response){
- 
-               var supportsOrientationChange = "onorientationchange" in window,
-                orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
+              function initUI(response) {
+
+                var supportsOrientationChange = "onorientationchange" in window,
+                 orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
                 //IE8 doesn't support addEventListener so check before calling
-                if(window.addEventListener){
+                if (window.addEventListener) {
                   window.addEventListener(orientationEvent, function () {
                     orientationChanged();
                   }, false);
                 }
 
-                 
-                  //add home button if enabled 
-                 if(window.options.home_button){//Add the home button to the small slider 
-                     require(["esri/dijit/HomeButton", "dojo/query"], lang.hitch(this,function(HomeButton,query){
-                        var homeButton = new HomeButton({
-                            map: window.map
-                        }, domConstruct.create("div",{},query(".esriSimpleSliderIncrementButton")[0], "after"));
-                        homeButton.startup();
-                    }));
-                 }
 
-                 //add address search if enabled 
-                 if(window.options.geocoder){
-                    var options = {
-                        map: window.map,
-                        config: window.options
-                    }
-                    var myGeocoder = new CreateGeocoder(options);
-                    if(myGeocoder.geocoder && myGeocoder.geocoder.domNode){
-                     domConstruct.place(myGeocoder.geocoder.domNode, "map", "last");
-                    }
+                //add home button if enabled 
+                if (window.options.home_button) {//Add the home button to the small slider 
+                  require(["esri/dijit/HomeButton", "dojo/query"], lang.hitch(this, function (HomeButton, query) {
+                    var homeButton = new HomeButton({
+                      map: window.map
+                    }, domConstruct.create("div", {}, query(".esriSimpleSliderIncrementButton")[0], "after"));
+                    homeButton.startup();
+                  }));
+                }
+
+                //add address search if enabled 
+                if (window.options.geocoder) {
+                  var options = {
+                    map: window.map,
+                    config: window.options
+                  }
+                  var myGeocoder = new CreateGeocoder(options);
+                  if (myGeocoder.geocoder && myGeocoder.geocoder.domNode) {
+                    domConstruct.place(myGeocoder.geocoder.domNode, "map", "last");
+                  }
 
 
-         
-                 }
+
+                }
 
 
                 var editableLayers = hasEditableLayers(response.itemInfo.itemData.operationalLayers);
 
-                 //add field infos if applicable - this will contain hints if defined in the popup. Also added logic to hide fields that have visible = false. The popup takes 
-                 //care of this for the info window but not for the edit window. 
-                 array.forEach(editableLayers, lang.hitch(this, function(layer){
-                    if(layer.featureLayer && layer.featureLayer.infoTemplate && layer.featureLayer.infoTemplate.info && layer.featureLayer.infoTemplate.info.fieldInfos){
-                        //only display visible fields 
-                        var fields = layer.featureLayer.infoTemplate.info.fieldInfos;
-        
-                        var fieldInfos = [];
-                        array.forEach(fields, function(field){
-                          if(field.visible){
-                            fieldInfos.push(field);
-                          }
-                        });
-                        layer.fieldInfos = fieldInfos;
-                    }
-                 }));
+                //add field infos if applicable - this will contain hints if defined in the popup. Also added logic to hide fields that have visible = false. The popup takes 
+                //care of this for the info window but not for the edit window. 
+                array.forEach(editableLayers, lang.hitch(this, function (layer) {
+                  if (layer.featureLayer && layer.featureLayer.infoTemplate && layer.featureLayer.infoTemplate.info && layer.featureLayer.infoTemplate.info.fieldInfos) {
+                    //only display visible fields 
+                    var fields = layer.featureLayer.infoTemplate.info.fieldInfos;
+
+                    var fieldInfos = [];
+                    array.forEach(fields, function (field) {
+                      if (field.visible) {
+                        fieldInfos.push(field);
+                      }
+                    });
+                    layer.fieldInfos = fieldInfos;
+                  }
+                }));
 
                 //does the web map contain any editable layers and does the logged-in user have 
                 //edit permissions 
                 var editable = true;
                 var content_title = window.options.i18n.viewer.content_title;
-                if(esriLang.isDefined(window.options.userPrivileges)){
-                    if(array.indexOf(window.options.userPrivileges, "features:user:edit") === -1){
-                        editable = false;
-                        //change the title to legend 
-                        content_title = content_title = window.options.i18n.viewer.legend_title;
-                    }
-                }          
+                if (esriLang.isDefined(window.options.userPrivileges)) {
+                  if (array.indexOf(window.options.userPrivileges, "features:user:edit") === -1) {
+                    editable = false;
+                    //change the title to legend 
+                    content_title = content_title = window.options.i18n.viewer.legend_title;
+                  }
+                }
 
 
-                var content = domConstruct.create("div",{id:"editorDiv"});
+                var content = domConstruct.create("div", { id: "editorDiv" });
                 //create the Legend or Editor 
-                window.appcontent.setPanelContent(content_title , content , "240px").then(lang.hitch(this,  function(){
-                    var editorWidget;
-                    //need to create the panel for the mobile case
-                    window.appcontent.showPanelContent();
-                    window.map.reposition();
-                    window.map.resize();
+                window.appcontent.setPanelContent(content_title, content, "240px").then(lang.hitch(this, function () {
+                  var editorWidget;
+                  //need to create the panel for the mobile case
+                  window.appcontent.showPanelContent();
+                  window.map.reposition();
+                  window.map.resize();
 
-                    if(editableLayers.length === 0 || !editable){
+                  if (editableLayers.length === 0 || !editable) {
 
 
-                        console.log(window.options.i18n.viewer.errors.no_editable_layers_message);
-                        var legend = new Legend({
-                          map: window.map,
-                          layerInfos: arcgisUtils.getLegendLayers(response)
-                        },dom.byId("editorDiv"));
+                    console.log(window.options.i18n.viewer.errors.no_editable_layers_message);
+                    var legend = new Legend({
+                      map: window.map,
+                      layerInfos: arcgisUtils.getLegendLayers(response)
+                    }, dom.byId("editorDiv"));
+
+                    legend.startup();
+
+                  } else { //can edit 
+
+                    //display the toolbar if the configuration option has been enabled and the site isn't mobile.
+                    var settings = {
+                      map: window.map,
+                      layerInfos: editableLayers,
+                      toolbarVisible: (window.options.displaytoolbar && !window.appcontent.isMobile) ? true : false
+                    };
+
+                    var params = {
+                      settings: settings
+                    };
+
+                    //sbtest, create template picker instead.
+                    var layers = new Array();
+                    layers[0] = editableLayers[0].featureLayer;
+
+                    var templatePicker = new TemplatePicker({
+                      featureLayers: layers,
+                      rows: "auto",
+                      columns: 2,
+                      grouping: true,
+                      style: "height: auto; overflow: auto;"
+                    }, "editorDiv");
+                    templatePicker.startup();
+
+
+                    window.myDialog = new Dialog({
+                      title: "My Dialog",
+                      style: "width: 300px"
+                    });
+
+                    window.myDialog.initMe = function () {
+
+                      var sContent = "Food Truck. </br>"
+                        + "</br>"
+                        + "</br>"
+                        + "</br>"
+                        + "<button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>";
+
+                      this.set('title', 'Food Truck Survey');
+                      this.set('style', 'width:600px');
+
+                      sContent = defaults.editingDialogHTML;
                       
-                        legend.startup();                      
-                            
-                    }else{ //can edit 
-
-                      //display the toolbar if the configuration option has been enabled and the site isn't mobile.
-                      var settings = {
-                        map: window.map,
-                        layerInfos: editableLayers,
-                        toolbarVisible: (window.options.displaytoolbar && !window.appcontent.isMobile) ? true : false
-                      };
-
-                      var params = {
-                        settings: settings
-                      };
-
-                      //sbtest, create template picker instead.
-                      var layers = new Array();
-                      layers[0] = editableLayers[0].featureLayer;
-
-                      var templatePicker = new TemplatePicker({
-                        featureLayers: layers,
-                        rows: "auto",
-                        columns: 2,
-                        grouping: true,
-                        style: "height: auto; overflow: auto;"
-                      }, "editorDiv");
-                      templatePicker.startup();
+                      
+                      this.set('content', sContent);
+                      
 
 
-                      window.myDialog = new Dialog({
-                        title: "My Dialog",
-                        content: "Test content. <button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>",
-                        style: "width: 300px"
-                      });
+                    };
 
-                      window.myDialog.initMe = function () {
+                    window.myDialog.setAttributes = function (feature) {
 
-                        var sContent = "Food Truck. </br>"
-                          + "</br>"
-                          + "</br>"
-                          + "</br>"
-                          +"<button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>";
-                        
-                        this.set('title', 'Food Truck Survey');
-                        this.set('style', 'width:600px');
+                      var t = this.get('value');
 
-                        var inputFormTemplate = dom.byId("divInputForm")
-
-                        this.set('content', inputFormTemplate.innerHTML);
+                    };
 
 
 
-                      };
+                    this.templatePicker = templatePicker;
 
+                    var drawToolbar = new Draw(map);
 
-            
+                    var selectedTemplate;
+                    templatePicker.on("selection-change", function () {
+                      if (templatePicker.getSelected()) {
+                        selectedTemplate = templatePicker.getSelected();
 
-
-                      this.templatePicker = templatePicker;
-
-                      var drawToolbar = new Draw(map);
-
-                      var selectedTemplate;
-                      templatePicker.on("selection-change", function () {
-                        if (templatePicker.getSelected()) {
-                          selectedTemplate = templatePicker.getSelected();
-                          
-                        }
-                        switch (selectedTemplate.featureLayer.geometryType) {
-                          case "esriGeometryPoint":
-                            drawToolbar.activate(Draw.POINT);
-                            break;
-                          case "esriGeometryPolyline":
-                            drawToolbar.activate(Draw.POLYLINE);
-                            break;
-                          case "esriGeometryPolygon":
-                            drawToolbar.activate(Draw.POLYGON);
-                            break;
-                        }
-                      });
-
-
-                      drawToolbar.on("draw-end", function (evt) {
-                        drawToolbar.deactivate();
-  
-                        window.myDialog.initMe();
-                        window.myDialog.show();
-
-                        var ok = dojo.byId("OKButton");
-                        this.locationGeometry = evt.geometry;
-
-                        dojo.connect(ok, "onclick", lang.hitch(this,function() {
-
-                          selectedTemplate = this.templatePicker.getSelected();
-                          newGeometry = this.locationGeometry;
-
-                          var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
-                          var newGraphic = new Graphic(newGeometry, null, newAttributes);
-                          selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
-
-                          window.myDialog.hide();
-                        }));
-
-                      });
-
-                      window.map.enableSnapping();
-                      if(!dojo.isIE){
-                        adjustPopup();
                       }
+                      switch (selectedTemplate.featureLayer.geometryType) {
+                        case "esriGeometryPoint":
+                          drawToolbar.activate(Draw.POINT);
+                          break;
+                        case "esriGeometryPolyline":
+                          drawToolbar.activate(Draw.POLYLINE);
+                          break;
+                        case "esriGeometryPolygon":
+                          drawToolbar.activate(Draw.POLYGON);
+                          break;
+                      }
+                    });
 
+
+                    drawToolbar.on("draw-end", function (evt) {
+                      drawToolbar.deactivate();
+
+                      window.myDialog.initMe();
+                      window.myDialog.show();
+
+                      var ok = dojo.byId("OKButton");
+                      this.locationGeometry = evt.geometry;
+
+                      dojo.connect(ok, "onclick", lang.hitch(this, function () {
+
+                        selectedTemplate = this.templatePicker.getSelected();
+                        newGeometry = this.locationGeometry;
+
+                        var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
+                        var newGraphic = new Graphic(newGeometry, null, newAttributes);
+                        window.myDialog.setAttributes(newGraphic);
+                        selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
+
+                        window.myDialog.hide();
+                      }));
+
+                    });
+
+                    window.map.enableSnapping();
+                    if (!dojo.isIE) {
+                      adjustPopup();
                     }
 
-                  if(window.appcontent.isMobile){
+                  }
 
-                      //add an additional  button to the header. This method accepts text and/or an image. If an image url is supplied that image
-                      //will be used as the button icon. Can add more that one button using the addMobileButton method. Additional buttons will
-                      //display on the right side.
-                      var btn = window.appcontent.addMobileButton("geo" , "images/gps.png");                   
+                  if (window.appcontent.isMobile) {
 
-                      on(btn, "click", function(){
-                          if(navigator.geolocation){
-                              navigator.geolocation.getCurrentPosition(zoomToLocation, locationError);
-                          }
-                      });
+                    //add an additional  button to the header. This method accepts text and/or an image. If an image url is supplied that image
+                    //will be used as the button icon. Can add more that one button using the addMobileButton method. Additional buttons will
+                    //display on the right side.
+                    var btn = window.appcontent.addMobileButton("geo", "images/gps.png");
+
+                    on(btn, "click", function () {
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(zoomToLocation, locationError);
+                      }
+                    });
 
                     //listen for info window and maximize
-                     on(window.map.infoWindow, "show", function(){
-                        window.map.infoWindow.maximize();
-                      });
+                    on(window.map.infoWindow, "show", function () {
+                      window.map.infoWindow.maximize();
+                    });
 
-                      //when template picker selection changes close window
-                      if(editorWidget && editorWidget.templatePicker){
+                    //when template picker selection changes close window
+                    if (editorWidget && editorWidget.templatePicker) {
+                      window.appcontent.hidePanelContent();
+                      editorWidget.templatePicker.on("selection-change", lang.hitch(this, function () {
                         window.appcontent.hidePanelContent();
-                        editorWidget.templatePicker.on("selection-change", lang.hitch(this,function(){
-                          window.appcontent.hidePanelContent();
-                        }));
-      
-                      }
-
-
-                  }else{
-             
-                    //add the location button for desktop if enabled. 
-                    if(window.options.locate_button){
-                      require(["esri/dijit/LocateButton"], lang.hitch(this,function(LocateButton){
-                          //add the location button as a child of the map div. This button
-                          //is positioned using css. Search main.css for the locateDiv selector
-                          var locateDiv = domConstruct.create("div",{id:"locateDiv"},"map");
-                          var locationButton = new LocateButton({
-                              map: window.map
-                          },locateDiv);
-                          locationButton.startup();
                       }));
-                   }
-
-               }
-
-               }));
-
-            }
-
-
-
-            function hasEditableLayers(layers){
-                var editableLayers = [];
-                array.forEach(layers, function(layer){
-
-                    if(layer &&  layer.layerObject ){
-
-                        var eLayer = layer.layerObject;
- 
-                        if(eLayer instanceof esri.layers.FeatureLayer && eLayer.isEditable()){
-
-                              editableLayers.push({'featureLayer' : eLayer})   
-
-                        }
 
                     }
+
+
+                  } else {
+
+                    //add the location button for desktop if enabled. 
+                    if (window.options.locate_button) {
+                      require(["esri/dijit/LocateButton"], lang.hitch(this, function (LocateButton) {
+                        //add the location button as a child of the map div. This button
+                        //is positioned using css. Search main.css for the locateDiv selector
+                        var locateDiv = domConstruct.create("div", { id: "locateDiv" }, "map");
+                        var locationButton = new LocateButton({
+                          map: window.map
+                        }, locateDiv);
+                        locationButton.startup();
+                      }));
+                    }
+
+                  }
+
+                }));
+
+              }
+
+
+
+              function hasEditableLayers(layers) {
+                var editableLayers = [];
+                array.forEach(layers, function (layer) {
+
+                  if (layer && layer.layerObject) {
+
+                    var eLayer = layer.layerObject;
+
+                    if (eLayer instanceof esri.layers.FeatureLayer && eLayer.isEditable()) {
+
+                      editableLayers.push({ 'featureLayer': eLayer })
+
+                    }
+
+                  }
                 });
                 return editableLayers;
-            }
-            function zoomToLocation(location){
-              //Add  a graphic to the map to show the current location. Location is determined using geolocation api
-              window.map.graphics.clear();
-              var pt = new Point(location.coords);
-              var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
-                    new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                    new  Color([102, 255, 255, 0.5]), 8),
-                    new  Color([102, 255, 255, 0.9])
-                  );
-              graphic = new Graphic(pt, symbol);
-              map.graphics.add(graphic);
-              var zoom = window.map.getZoom() || 12;
-              map.centerAndZoom(pt, zoom);
-            }
-
-            function locationError(error){
-
-              switch (error.code) {
-              case error.PERMISSION_DENIED:
-                alert("Location not provided");
-                break;
-
-              case error.POSITION_UNAVAILABLE:
-                alert("Current location not available");
-                break;
-
-              case error.TIMEOUT:
-                alert("Timeout");
-                break;
-
-              default:
-                alert("unknown error");
-                break;
               }
-            }
-
-            function adjustPopup() {
-              var box = domGeometry.getContentBox(window.map.container);
-
-              //sbtest var width = 270, height = 300, // defaults
-              var width = 500, height = 300
-
-                  newWidth = Math.round(box.w * 0.60),
-                  newHeight = Math.round(box.h * 0.45);
-              if (newWidth < width) {
-                width = newWidth;
+              function zoomToLocation(location) {
+                //Add  a graphic to the map to show the current location. Location is determined using geolocation api
+                window.map.graphics.clear();
+                var pt = new Point(location.coords);
+                var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
+                      new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                      new Color([102, 255, 255, 0.5]), 8),
+                      new Color([102, 255, 255, 0.9])
+                    );
+                graphic = new Graphic(pt, symbol);
+                map.graphics.add(graphic);
+                var zoom = window.map.getZoom() || 12;
+                map.centerAndZoom(pt, zoom);
               }
 
-              if (newHeight < height) {
-                height = newHeight;
-              }
+              function locationError(error) {
 
-               window.map.infoWindow.resize(width, height);
-            }
+                switch (error.code) {
+                  case error.PERMISSION_DENIED:
+                    alert("Location not provided");
+                    break;
 
+                  case error.POSITION_UNAVAILABLE:
+                    alert("Current location not available");
+                    break;
 
+                  case error.TIMEOUT:
+                    alert("Timeout");
+                    break;
 
-            function orientationChanged() {
-              if (window.map) {
-                if(window.appcontent.isMobile){
-                    //resize the info window if displayed.
-                    if(window.map.infoWindow.isShowing){
-                        window.map.infoWindow.reposition();
-                        window.map.infoWindow.maximize();
-                    }
+                  default:
+                    alert("unknown error");
+                    break;
                 }
-                window.map.reposition();
-                window.map.resize();
               }
-            }
+
+              function adjustPopup() {
+                var box = domGeometry.getContentBox(window.map.container);
+
+                //sbtest var width = 270, height = 300, // defaults
+                var width = 500, height = 300
+
+                newWidth = Math.round(box.w * 0.60),
+                newHeight = Math.round(box.h * 0.45);
+                if (newWidth < width) {
+                  width = newWidth;
+                }
+
+                if (newHeight < height) {
+                  height = newHeight;
+                }
+
+                window.map.infoWindow.resize(width, height);
+              }
 
 
-        });
+
+              function orientationChanged() {
+                if (window.map) {
+                  if (window.appcontent.isMobile) {
+                    //resize the info window if displayed.
+                    if (window.map.infoWindow.isShowing) {
+                      window.map.infoWindow.reposition();
+                      window.map.infoWindow.maximize();
+                    }
+                  }
+                  window.map.reposition();
+                  window.map.resize();
+                }
+              }
 
 
-        });
+            });
+
+
+          });
 
 
     </script>
@@ -533,101 +554,7 @@
 
   <body class="claro">
 
-        
-  <div id="divInputForm" style="visibility:collapse">
-        <table>
-          <tr>
-            <td><span>Tell us about this location (fill out all that apply)</span></td>
-          </tr>
-        </table>
-        <table id="tableInput" style="">
-        
-         <tr>
-           <td>
-             <table><tr><td><span>When would you visit a food truck at this location?</span></td></tr></table>
-            </td>
-         
-         </tr>
-         <tr><td style="width:400px">
-           
-           <table >
-             <tr><td>
-                <input id="chkWeekday" type="checkbox" /><label for="chkWeekday">Weekday</label>
-              </td></tr>
-                
-               <tr><td>
-                <input id="chkWeekend" type="checkbox" /><label for="chkWeekend">Weekend</label>
-              </td></tr>
-           </table>
-
-          </td>
-
-
-           <td>
-           
-           <table>
-             <tr><td>
-                <input id="chkMorning" type="checkbox" /><label for="chkMorning">Morning</label>
-              </td></tr>
-                
-               <tr><td>
-                <input id="chkAfternoon" type="checkbox" /><label for="chkAfternoon">Afternoon</label>
-              </td></tr>
-
-                     <tr><td>
-                <input id="chkNight" type="checkbox" /><label for="chkNight">Night</label>
-              </td></tr>
-           </table>
-
-          </td>
-
-
-
-
-         </tr>
-       
-           <tr>
-           <td>
-             <table><tr><td><span>Do you know the neighborhood this location is in?</span></td></tr></table>
-            </td>
-         
-         </tr>
-          <tr><td>
-           <select style="width:250px">
-              <option value=""></option>
-              
-          </select>
-          </td></tr>
-
-
-       </table>
-
-      <table>
-        <tr>
-          <td>
-          <span>Please list any restaurants that are nearby:</span>
-          </td>
-          <td>
-            <input style="width:200px" type="text" id="txtRestaurants" />
-          </td>
-        </tr>
-      </table>
-
-        <table>
-        <tr>
-          <td>
-          <span>Comments:</span>
-          </td>
-          <td>
-            <input style="width:400px" type="text" id="txtComments" />
-          </td>
-        </tr>
-      </table>
-  <table><tr><td><button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>
-                        </td></tr></table>
-    </div>
-
-
+  
 
   </body>
 </html>
