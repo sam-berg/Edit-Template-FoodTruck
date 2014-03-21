@@ -304,6 +304,29 @@
                         style: "width: 300px"
                       });
 
+                      window.myDialog.initMe = function () {
+
+                        var sContent = "Food Truck. </br>"
+                          + "</br>"
+                          + "</br>"
+                          + "</br>"
+                          +"<button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>";
+                        
+                        this.set('title', 'Food Truck Survey');
+                        this.set('style', 'width:600px');
+
+                        var inputFormTemplate = dom.byId("divInputForm")
+
+                        this.set('content', inputFormTemplate.innerHTML);
+
+
+
+                      };
+
+
+            
+
+
                       this.templatePicker = templatePicker;
 
                       var drawToolbar = new Draw(map);
@@ -331,6 +354,7 @@
                       drawToolbar.on("draw-end", function (evt) {
                         drawToolbar.deactivate();
   
+                        window.myDialog.initMe();
                         window.myDialog.show();
 
                         var ok = dojo.byId("OKButton");
@@ -345,6 +369,7 @@
                           var newGraphic = new Graphic(newGeometry, null, newAttributes);
                           selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
 
+                          window.myDialog.hide();
                         }));
 
                       });
@@ -507,6 +532,102 @@
   </head>
 
   <body class="claro">
+
+        
+  <div id="divInputForm" style="visibility:collapse">
+        <table>
+          <tr>
+            <td><span>Tell us about this location (fill out all that apply)</span></td>
+          </tr>
+        </table>
+        <table id="tableInput" style="">
+        
+         <tr>
+           <td>
+             <table><tr><td><span>When would you visit a food truck at this location?</span></td></tr></table>
+            </td>
+         
+         </tr>
+         <tr><td style="width:400px">
+           
+           <table >
+             <tr><td>
+                <input id="chkWeekday" type="checkbox" /><label for="chkWeekday">Weekday</label>
+              </td></tr>
+                
+               <tr><td>
+                <input id="chkWeekend" type="checkbox" /><label for="chkWeekend">Weekend</label>
+              </td></tr>
+           </table>
+
+          </td>
+
+
+           <td>
+           
+           <table>
+             <tr><td>
+                <input id="chkMorning" type="checkbox" /><label for="chkMorning">Morning</label>
+              </td></tr>
+                
+               <tr><td>
+                <input id="chkAfternoon" type="checkbox" /><label for="chkAfternoon">Afternoon</label>
+              </td></tr>
+
+                     <tr><td>
+                <input id="chkNight" type="checkbox" /><label for="chkNight">Night</label>
+              </td></tr>
+           </table>
+
+          </td>
+
+
+
+
+         </tr>
+       
+           <tr>
+           <td>
+             <table><tr><td><span>Do you know the neighborhood this location is in?</span></td></tr></table>
+            </td>
+         
+         </tr>
+          <tr><td>
+           <select style="width:250px">
+              <option value=""></option>
+              
+          </select>
+          </td></tr>
+
+
+       </table>
+
+      <table>
+        <tr>
+          <td>
+          <span>Please list any restaurants that are nearby:</span>
+          </td>
+          <td>
+            <input style="width:200px" type="text" id="txtRestaurants" />
+          </td>
+        </tr>
+      </table>
+
+        <table>
+        <tr>
+          <td>
+          <span>Comments:</span>
+          </td>
+          <td>
+            <input style="width:400px" type="text" id="txtComments" />
+          </td>
+        </tr>
+      </table>
+  <table><tr><td><button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>
+                        </td></tr></table>
+    </div>
+
+
 
   </body>
 </html>
