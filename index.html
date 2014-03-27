@@ -65,6 +65,7 @@
           "esri/arcgis/utils",
           "esri/layers/FeatureLayer",
           "esri/geometry/Point",
+          "esri/symbols/PictureMarkerSymbol",
           "esri/symbols/SimpleMarkerSymbol",
           "esri/symbols/SimpleLineSymbol",
           "esri/dijit/Legend",
@@ -98,6 +99,7 @@
               arcgisUtils,
               FeatureLayer,
               Point,
+              PictureMarkerSymbol,
               SimpleMarkerSymbol,
               SimpleLineSymbol,
               Legend,
@@ -319,7 +321,8 @@
 
                     window.myDialog = new Dialog({
                       title: "My Dialog",
-                      style: "width: 300px"
+                      style: "width: 300px",
+                      onHide:dojo.hitch(this,function(){window.map.graphics.clear();})
                     });
 
                     window.myDialog.initMe = function () {
@@ -391,6 +394,21 @@
 
 
                     drawToolbar.on("draw-end", function (evt) {
+
+                      //todo, add temporary graphic:
+                      window.map.graphics.clear();
+                      var pt = new Point(evt.geometry);
+                      var imgsymbol = new PictureMarkerSymbol({ "angle": 0, "xoffset": 0, "yoffset": 0, "type": "esriPMS", "url": "http://bit.ly/1fr5jNc", "contentType": "image/png", "width": 24, "height": 24 });
+
+                      var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
+                            new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                            new Color([255, 0, 0, 1]), 11),
+                            new Color([255, 0, 0, 1])
+                          );
+                      graphic = new Graphic(pt, imgsymbol);
+                      map.graphics.add(graphic);
+                      //
+
                       drawToolbar.deactivate();
 
                       window.myDialog.initMe();
@@ -409,6 +427,7 @@
                         window.myDialog.setAttributes(newGraphic);
                         selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
 
+                        window.map.graphics.clear();
                         window.myDialog.hide();
 
                         alert("Thank you for your survey submission.");
