@@ -395,10 +395,10 @@
 
                     drawToolbar.on("draw-end", function (evt) {
 
-                      //todo, add temporary graphic:
+                      //add temporary graphic:
                       window.map.graphics.clear();
                       var pt = new Point(evt.geometry);
-                      var imgsymbol = new PictureMarkerSymbol({ "angle": 0, "xoffset": 0, "yoffset": 0, "type": "esriPMS", "url": "http://bit.ly/1fr5jNc", "contentType": "image/png", "width": 24, "height": 24 });
+                      var imgsymbol = new PictureMarkerSymbol({"opacity":1, "angle": 0, "xoffset": 0, "yoffset": 0, "type": "esriPMS", "url": "http://bit.ly/1fr5jNc", "contentType": "image/png", "width": 30, "height": 30 });
 
                       var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
                             new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
