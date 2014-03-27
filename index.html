@@ -112,7 +112,7 @@
             ready(function () {
 
               var defaults = {
-                "webmap": "d23135d6dab541278025fc6e6997da6f",
+                "webmap": "ef2cd5102b5b4f6186ca697dcf034751",
                 "bingmapskey": config.bingMapsKey,
                 "sharingurl": document.location.protocol + "//www.arcgis.com",
                 "theme": "blue",  //blue, green black
@@ -490,8 +490,8 @@
 
                 }));
 
-                var descriptionDiv = domConstruct.toDom("<div id='description' style='margin-top:40px; border:2px solid black'></div>");
-                domConstruct.place(descriptionDiv,"editorDiv");
+                var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
+                domConstruct.place(descriptionDiv,"editorDiv","after");
 
                 if (dom.byId("description")) {
                   dom.byId("description").innerHTML =  window.options.description || response.itemInfo.item.description || "" ;
