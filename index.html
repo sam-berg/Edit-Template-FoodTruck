@@ -490,6 +490,13 @@
 
                 }));
 
+                var descriptionDiv = domConstruct.toDom("<div id='description' style='margin-top:40px; border:2px solid black'></div>");
+                domConstruct.place(descriptionDiv,"editorDiv");
+
+                if (dom.byId("description")) {
+                  dom.byId("description").innerHTML =  window.options.description || response.itemInfo.item.description || "" ;
+                }
+
               }
 
 
