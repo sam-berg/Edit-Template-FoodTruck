@@ -1,28 +1,34 @@
 ﻿
-  <div id="divInputForm" >
+  <div id="divInputForm" style="width:auto" >
         <table>
-          <tr>
+      <!--    <tr>
             <td><span>Tell us about this location (fill out all that apply)</span></td>
-          </tr>
-        </table>
-        <table id="tableInput" style="">
-        
-         <tr>
+          </tr>-->
+                   <tr>
            <td>
              <table><tr><td><span>When would you visit a food truck at this location?</span></td></tr></table>
             </td>
          
          </tr>
-         <tr><td style="width:400px">
+        </table>
+        <table id="tableInput" >
+        
+
+         <tr><td style="width:200px">
            
            <table >
              <tr><td>
-                <input id="chkWeekday" type="checkbox" /><label for="chkWeekday">Weekday</label>
+                <input id="chkWeekday" name="timeofweek" type="radio" /><label for="chkWeekday">Weekday</label>
               </td></tr>
                 
                <tr><td>
-                <input id="chkWeekend" type="checkbox" /><label for="chkWeekend">Weekend</label>
+                <input id="chkWeekend" name="timeofweek" type="radio"/><label for="radio">Weekend</label>
               </td></tr>
+
+                 <tr><td>
+                <input id="chkWeekBoth" name="timeofweek" type="radio"/><label for="radio" id="chkBoth">Both</label>
+              </td></tr>
+
            </table>
 
           </td>
@@ -32,16 +38,21 @@
            
            <table>
              <tr><td>
-                <input id="chkMorning" type="checkbox" /><label for="chkMorning">Morning</label>
+                <input id="chkMorning" name="timeofday" type="radio" /><label for="chkMorning">Morning</label>
               </td></tr>
                 
                <tr><td>
-                <input id="chkAfternoon" type="checkbox" /><label for="chkAfternoon">Afternoon</label>
+                <input id="chkMidday" name="timeofday" type="radio" /><label for="chkMidday">Midday</label>
               </td></tr>
 
-                     <tr><td>
-                <input id="chkNight" type="checkbox" /><label for="chkNight">Night</label>
+              <tr><td>
+                <input id="chkEvening" name="timeofday" type="radio" /><label for="chkEvening">Evening</label>
               </td></tr>
+                
+               <tr><td>
+                <input id="chkLateNight" name="timeofday" type="radio" /><label for="chkLateNight">Late Night</label>
+              </td></tr>
+
            </table>
 
           </td>
@@ -70,31 +81,35 @@
     <table>
       <tr>
            <td>
-             <table><tr><td><span>Type of Parking?</span></td></tr></table>
+             <table><tr><td><span>How many parking spots are here?</span></td>
+
+               <td>
+           <select id="parkingSpotCount" style="width:100px; margin-left: 10px;">
+             <option value=""></option>
+             <option value="One">One</option>
+             <option value="Two">Two</option>
+             <option value="Three">Three</option>           
+          </select>
+          </td>
+                    </tr></table>
             </td>
+
          
          </tr>
 
-          <tr><td>
-           <select style="width:250px">
-             <option value=""></option>
-             <option value="Metered">Metered</option>
-             <option value="Non-Metered">Non-Metered</option>
-             <option value="Resident Only">Resident Only</option>
-             <option value="Handicapped">Handicapped</option>
-             <option value="Other">Other</option>
-             
-              
-          </select>
-          </td></tr>
+
     </table>
     <table>
      <tr>
           <td>
-          <span>Width of sidewalk:</span>
+          <span>Is the sidewalk access OK?</span>
           </td>
           <td>
-            <input style="width:200px" type="text" id="txtSidewalkWidth" />
+            <select style="width:100px; margin-left: 67px;" id="sidewalkOK">
+             <option value=""></option>
+             <option value="Yes">Yes</option>
+             <option value="No">No</option>        
+          </select>
           </td>
         </tr>
 
@@ -117,11 +132,12 @@
           <span>Comments:</span>
           </td>
           <td>
-            <input style="width:400px" type="text" id="txtComments" />
+            <input style="width:400px; margin-left: 25px;" type="text" id="txtComments" />
           </td>
         </tr>
       </table>
-  <table><tr><td><button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>
+  <table width="100%" ><tr><td style="text-align: right"><button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>
+                        </td><td width="85px" style="text-align: right">  <button data-dojo-type="dijit/form/Button" type="button" id="cancelButton" style="margin-right: 10px">Cancel</button>
                         </td></tr></table>
     </div>
 
