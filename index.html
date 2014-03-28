@@ -380,7 +380,7 @@
                     }
 
                     //time of day
-                    var vTimeOfDay= null;
+                    var vTimeOfDay= "Other";
 
                     if (dojo.byId("chkMorning").checked) {
                       vTimeOfDay = "Morning";
@@ -478,6 +478,8 @@
                       window.map.graphics.clear();
                       window.myDialog.hide();
                       this.templatePicker.clearSelection();
+                      drawToolbar.deactivate();
+
                     }));
 
                     this.locationGeometry = evt.geometry;
@@ -502,6 +504,7 @@
                       window.map.graphics.clear();
                       window.myDialog.hide();
                       this.templatePicker.clearSelection();
+                      drawToolbar.deactivate();
 
                       alert("Thank you for your survey submission.");
 
