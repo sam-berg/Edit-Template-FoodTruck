@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <!-- Sets the style of the status bar for a web application when in standalone mode -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <title></title>
+  <title>Food Truck Select-a-Site</title>
   <link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.9/js/dojo/dijit/themes/claro/claro.css">
   <link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.9/js/esri/css/esri.css" />
   <link rel="stylesheet" href="css/layout.css" />
@@ -52,6 +52,7 @@
         "dojo/_base/array",
         "dojo/dom-construct",
         "dojo/dom-geometry",
+        "dijit/layout/ContentPane",
         "utilities/app",
         "utilities/CreateContent",
         "utilities/CreateGeocoder",
@@ -86,6 +87,7 @@
             array,
             domConstruct,
             domGeometry,
+            ContentPane,
             App,
             Content,
             CreateGeocoder,
@@ -281,7 +283,12 @@
               }
 
 
-              var content = domConstruct.create("div", { id: "editorDiv" });
+              //sbtest var content = domConstruct.create("div", { id: "editorDiv" });
+              var content = new ContentPane({
+                id: "editorDivParent",region:"top"
+              }).placeAt(dojo.byId("leftPane"));
+              domConstruct.create("div", { id: "editorDiv" }, "editorDivParent");
+          
               //create the Legend or Editor 
               window.appcontent.setPanelContent(content_title, content, "275px").then(lang.hitch(this, function () {
                 var editorWidget;
@@ -318,13 +325,22 @@
                   var layers = new Array();
                   layers[0] = editableLayers[0].featureLayer;
 
+                  //var templatePicker = new TemplatePicker({
+                  //  featureLayers: layers,
+                  //  rows: "auto",
+                  //  columns: 2,
+                  //  grouping: false,
+                  //  style: "height: auto; overflow: auto;"
+                  //}, "editorDiv");
+
                   var templatePicker = new TemplatePicker({
                     featureLayers: layers,
                     rows: "auto",
                     columns: 2,
                     grouping: false,
                     style: "height: auto; overflow: auto;"
-                  }, "editorDiv");
+                  }, dom.byId("editorDiv"));
+
                   templatePicker.startup();
 
 
@@ -566,12 +582,20 @@
 
               }));
 
-              var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
-              domConstruct.place(descriptionDiv, "editorDiv", "after");
+              //var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
+              //domConstruct.place(descriptionDiv, "editorDiv", "after");
+
+              var descriptionDiv = new ContentPane({
+                id: "description"
+              }).placeAt("editorDiv","after");
+
+              //var descriptionDiv2 = domConstruct.create("div", { id: "description" }, dojo.byId("editorDiv"), "after");
 
               if (dom.byId("description")) {
                 dom.byId("description").innerHTML = window.options.description || response.itemInfo.item.description || "";
               }
+
+
 
 
               //add splashscreen

@@ -159,10 +159,10 @@
 #description
 {
   padding-top:5px;
-  margin-top: 40px;
+
   border: 0px solid black;
   border-top: 1px solid gray;
-  height:67%;
+ 
   overflow: auto;
 }
 
@@ -171,7 +171,7 @@
      padding: 5px;
      font-size: 11pt;
      height:100%;
-     overflow:hidden;
+     overflow-y:auto;
     }
     .esriEditor{
       height:95%;
@@ -219,6 +219,7 @@
   .mobile #leftPane{
     height:100%;
     overflow: auto;
+    overflow-x:hidden;
     position: absolute;
     width:100%;
     z-index:100;

@@ -93,10 +93,17 @@ define([
 
                   //add  content pane for left content if desktop or tablet. For smart phones create a div that will be toggled.                   
                   if(!this.isMobile){
-                   this.leftPanel = new ContentPane({
-                        id: "leftPane",
-                        region: "left"
+                   //this.leftPanel = new ContentPane({
+                   //     id: "leftPane",
+                   //     region: "left"
+                    //}).placeAt(this.mainWindow);
+
+                    //SBTEST
+                    this.leftPanel = new BorderContainer({
+                         id: "leftPane",
+                         region: "left"
                     }).placeAt(this.mainWindow);
+
                  }else{
 
                   this.leftPanel = domConstruct.create("div",{
