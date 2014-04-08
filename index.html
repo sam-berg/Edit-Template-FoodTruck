@@ -284,9 +284,18 @@
 
 
                     //sbtest var content = domConstruct.create("div", { id: "editorDiv" });
-                    var content = new ContentPane({
-                        id: "editorDivParent", region: "top"
-                    }).placeAt(dojo.byId("leftPane"));
+                    if (0 == 1) {
+                        var content = new ContentPane({
+                            id: "editorDivParent", region: "top"
+                        }).placeAt(dojo.byId("leftPane"));
+                    }
+                    else {
+                        dijit.byId("leftPane").addChild(new ContentPane({
+                            id: "editorDivParent", region: "top"
+                        }));
+
+                    }
+
                     domConstruct.create("div", { id: "editorDiv" }, "editorDivParent");
 
                     //create the Legend or Editor 
@@ -414,7 +423,7 @@
                                 if (dojo.byId("TOW_Weekend").checked) {
                                     vTOW_Weekend = "TRUE";
                                 }
-                           
+
                                 //how many spots
                                 var vSpots = dojo.byId("HowMany").value;
 
@@ -453,7 +462,7 @@
 
                                 if (vTOW_Weekend != null)
                                     feature.attributes.TOW_Weekend = vTOW_Weekend;
-                           
+
 
                                 if (vSpots != null && vSpots != "")
                                     feature.attributes.HowMany = vSpots;
@@ -462,7 +471,7 @@
                                     feature.attributes.Restaurants_Nearby = vRestaurants_Nearby;
 
                                 //if (vSidewalkOK != null && vSidewalkOK != "")
-                                 //   feature.attributes.Sidewalk_OK = vSidewalkOK;
+                                //   feature.attributes.Sidewalk_OK = vSidewalkOK;
 
 
 
@@ -614,9 +623,21 @@
                     //var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
                     //domConstruct.place(descriptionDiv, "editorDiv", "after");
 
-                    var descriptionDiv = new ContentPane({
-                        id: "description"
-                    }).placeAt("editorDiv", "after");
+                    //                    var descriptionDiv = new ContentPane({
+                    //                        id: "description"
+                    //                    }).placeAt("editorDiv", "after");
+
+                    if (0 == 1) {
+                        var descriptionDiv = new ContentPane({
+                            id: "description", region: "bottom"
+                        }).placeAt(dojo.byId("leftPane"));
+                    }
+                    else {
+                        dijit.byId("leftPane").addChild(new ContentPane({
+                            id: "description", region: "top"
+                        }));
+
+                    }
 
                     //var descriptionDiv2 = domConstruct.create("div", { id: "description" }, dojo.byId("editorDiv"), "after");
 
