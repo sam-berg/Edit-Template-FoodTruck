@@ -244,7 +244,7 @@ define([
                     options.searchDelay = 100
                     options.arcgisGeocoder = geocoders.splice(0, 1)[0]; //geocoders[0];
 
-                    options.arcgisGeocoder.placeholder = "example: 1 City Hall Plaza, Boston MA";
+                    options.arcgisGeocoder.placeholder = "1 City Hall Plaza, Boston";
 
                     if (geocoders.length > 0) {
                         options.geocoders = geocoders;
