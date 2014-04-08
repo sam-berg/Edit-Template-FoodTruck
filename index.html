@@ -39,7 +39,7 @@
   <script type="text/javascript" src="//js.arcgis.com/3.9/"></script>
 
   <script type="text/javascript">
-    require([
+      require([
         "dojo/parser",
         "dojo/ready",
         "dojo/_base/lang",
@@ -111,809 +111,838 @@
           ) {
 
 
-          ready(function () {
+            ready(function () {
 
-            var defaults = {
-              "webmap": "da50e61729564da6afa32ca8fe92b5dc",
-              "bingmapskey": config.bingMapsKey,
-              "sharingurl": document.location.protocol + "//www.arcgis.com",
-              "theme": "blue",  //blue, green black
-              "proxyurl": "proxy.ashx",
-              "home_button": true,
-              "locate_button": true,
-              "geocoder": true,
-              "helperServices": config.helperServices,
-              "splashScreenMessage": "<b>Welcome to the Food Truck Survey.</b></br>Thank you for your interest.  </br>Please refer to the comments on this page for directions on adding your suggested location to the survey."
-            };
+                var defaults = {
+                    "webmap": "da50e61729564da6afa32ca8fe92b5dc",
+                    "bingmapskey": config.bingMapsKey,
+                    "sharingurl": document.location.protocol + "//www.arcgis.com",
+                    "theme": "blue",  //blue, green black
+                    "proxyurl": "proxy.ashx",
+                    "home_button": true,
+                    "locate_button": true,
+                    "geocoder": true,
+                    "helperServices": config.helperServices,
+                    "splashScreenMessage": "<b>Welcome to the Food Truck Survey.</b></br>Thank you for your interest.  </br>Please refer to the comments on this page for directions on adding your suggested location to the survey."
+                };
 
-            //read dialog format
-            var dialogURL = "EditingForm.html";
-            var formRequest = esriRequest({
-              url: dialogURL,
-              handleAs: "text",
-              callbackParamName: "callback"
-            });
-            formRequest.then(
+                //read dialog format
+                var dialogURL = "EditingForm.html";
+                var formRequest = esriRequest({
+                    url: dialogURL,
+                    handleAs: "text",
+                    callbackParamName: "callback"
+                });
+                formRequest.then(
               function (response) {
-                console.log("Success: ", response);
+                  console.log("Success: ", response);
 
-                defaults.editingDialogHTML = String(response).replace("\r\n", "");
+                  defaults.editingDialogHTML = String(response).replace("\r\n", "");
               }, function (error) {
-                console.log("Error: ", error.message);
+                  console.log("Error: ", error.message);
               });
-            //
+                //
 
-            var supportsLocalization = true;
-            var app = new App(defaults, supportsLocalization);
-            on(app, "ready", function (config) {
+                var supportsLocalization = true;
+                var app = new App(defaults, supportsLocalization);
+                on(app, "ready", function (config) {
 
-              window.options = config;
-
-
-              //apply the specified theme
-              var ss = document.createElement("link");
-              ss.type = "text/css";
-              ss.rel = "stylesheet";
-              ss.href = "css/" + options.theme + ".css";
-              document.getElementsByTagName("head")[0].appendChild(ss);
+                    window.options = config;
 
 
-              //Build the user interface for the application. In this case it's a simple app with a header, content and a left (or floating) panel
-              window.appcontent = new Content();
-              window.appcontent.createLayout().then(function () {
-                var itemInfo = window.options.itemInfo || window.options.webmap;
-                createMap(itemInfo);
-              });
+                    //apply the specified theme
+                    var ss = document.createElement("link");
+                    ss.type = "text/css";
+                    ss.rel = "stylesheet";
+                    ss.href = "css/" + options.theme + ".css";
+                    document.getElementsByTagName("head")[0].appendChild(ss);
 
 
-            });
+                    //Build the user interface for the application. In this case it's a simple app with a header, content and a left (or floating) panel
+                    window.appcontent = new Content();
+                    window.appcontent.createLayout().then(function () {
+                        var itemInfo = window.options.itemInfo || window.options.webmap;
+                        createMap(itemInfo);
+                    });
 
 
-            //Hide splash screen container
-            function HideSplashScreenMessage() {
-              if (dojo.isIE < 9) {
-                dojo.byId("divSplashScreenContent").style.display = "none";
-              }
-              dojo.addClass('divSplashScreenContainer', "opacityHideAnimation");
-              dojo.replaceClass("divSplashScreenContent", "hideContainer", "showContainer");
-            }
-
-            function createMap(itemInfo) {
-              var mapDeferred = arcgisUtils.createMap(itemInfo, "map", {
-                bingMapsKey: window.options.bingmapskey
-              });
-              mapDeferred.then(function (response) {
-
-                window.map = response.map;
+                });
 
 
-                //set the title and subtitle in the app's header
-                document.title = window.options.title || response.itemInfo.item.title;
-                dom.byId("title").innerHTML = window.options.title || response.itemInfo.item.title;
-                if (dom.byId("subtitle")) {
-                  dom.byId("subtitle").innerHTML = window.options.subtitle || response.itemInfo.item.snippet || "";
-                }
-
-
-                if (window.map.loaded) {
-                  initUI(response);
-                } else {
-                  conn.connect(window.map, "onLoad", function () {
-                    initUI(response);
-                  });
-                }
-
-
-              }, function (error) {
-
-                alert(window.options.i8n.viewer.errors.message + " : " + error.message);
-              });
-
-            }
-
-
-
-            function initUI(response) {
-
-              var supportsOrientationChange = "onorientationchange" in window,
-               orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
-              //IE8 doesn't support addEventListener so check before calling
-              if (window.addEventListener) {
-                window.addEventListener(orientationEvent, function () {
-                  orientationChanged();
-                }, false);
-              }
-
-
-              //add home button if enabled 
-              if (window.options.home_button) {//Add the home button to the small slider 
-                require(["esri/dijit/HomeButton", "dojo/query"], lang.hitch(this, function (HomeButton, query) {
-                  var homeButton = new HomeButton({
-                    map: window.map
-                  }, domConstruct.create("div", {}, query(".esriSimpleSliderIncrementButton")[0], "after"));
-                  homeButton.startup();
-                }));
-              }
-
-              //add address search if enabled 
-              if (window.options.geocoder) {
-                var options = {
-                  map: window.map,
-                  config: window.options
-                }
-                var myGeocoder = new CreateGeocoder(options);
-                if (myGeocoder.geocoder && myGeocoder.geocoder.domNode) {
-                  domConstruct.place(myGeocoder.geocoder.domNode, "map", "last");
-                }
-
-
-
-              }
-
-
-              var editableLayers = hasEditableLayers(response.itemInfo.itemData.operationalLayers);
-
-              //add field infos if applicable - this will contain hints if defined in the popup. Also added logic to hide fields that have visible = false. The popup takes 
-              //care of this for the info window but not for the edit window. 
-              array.forEach(editableLayers, lang.hitch(this, function (layer) {
-                if (layer.featureLayer && layer.featureLayer.infoTemplate && layer.featureLayer.infoTemplate.info && layer.featureLayer.infoTemplate.info.fieldInfos) {
-                  //only display visible fields 
-                  var fields = layer.featureLayer.infoTemplate.info.fieldInfos;
-
-                  var fieldInfos = [];
-                  array.forEach(fields, function (field) {
-                    if (field.visible) {
-                      fieldInfos.push(field);
+                //Hide splash screen container
+                function HideSplashScreenMessage() {
+                    if (dojo.isIE < 9) {
+                        dojo.byId("divSplashScreenContent").style.display = "none";
                     }
-                  });
-                  layer.fieldInfos = fieldInfos;
+                    dojo.addClass('divSplashScreenContainer', "opacityHideAnimation");
+                    dojo.replaceClass("divSplashScreenContent", "hideContainer", "showContainer");
                 }
-              }));
 
-              //does the web map contain any editable layers and does the logged-in user have 
-              //edit permissions 
-              var editable = true;
-              var content_title = window.options.i18n.viewer.content_title;
-              if (esriLang.isDefined(window.options.userPrivileges)) {
-                if (array.indexOf(window.options.userPrivileges, "features:user:edit") === -1) {
-                  editable = false;
-                  //change the title to legend 
-                  content_title = content_title = window.options.i18n.viewer.legend_title;
+                function createMap(itemInfo) {
+                    var mapDeferred = arcgisUtils.createMap(itemInfo, "map", {
+                        bingMapsKey: window.options.bingmapskey
+                    });
+                    mapDeferred.then(function (response) {
+
+                        window.map = response.map;
+
+
+                        //set the title and subtitle in the app's header
+                        document.title = window.options.title || response.itemInfo.item.title;
+                        dom.byId("title").innerHTML = window.options.title || response.itemInfo.item.title;
+                        if (dom.byId("subtitle")) {
+                            dom.byId("subtitle").innerHTML = window.options.subtitle || response.itemInfo.item.snippet || "";
+                        }
+
+
+                        if (window.map.loaded) {
+                            initUI(response);
+                        } else {
+                            conn.connect(window.map, "onLoad", function () {
+                                initUI(response);
+                            });
+                        }
+
+
+                    }, function (error) {
+
+                        alert(window.options.i8n.viewer.errors.message + " : " + error.message);
+                    });
+
                 }
-              }
 
 
-              //sbtest var content = domConstruct.create("div", { id: "editorDiv" });
-              var content = new ContentPane({
-                id: "editorDivParent",region:"top"
-              }).placeAt(dojo.byId("leftPane"));
-              domConstruct.create("div", { id: "editorDiv" }, "editorDivParent");
-          
-              //create the Legend or Editor 
-              window.appcontent.setPanelContent(content_title, content, "275px").then(lang.hitch(this, function () {
-                var editorWidget;
-                //need to create the panel for the mobile case
-                window.appcontent.showPanelContent();
-                window.map.reposition();
-                window.map.resize();
 
-                if (editableLayers.length === 0 || !editable) {
+                function initUI(response) {
+
+                    var supportsOrientationChange = "onorientationchange" in window,
+               orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
+                    //IE8 doesn't support addEventListener so check before calling
+                    if (window.addEventListener) {
+                        window.addEventListener(orientationEvent, function () {
+                            orientationChanged();
+                        }, false);
+                    }
 
 
-                  console.log(window.options.i18n.viewer.errors.no_editable_layers_message);
-                  var legend = new Legend({
-                    map: window.map,
-                    layerInfos: arcgisUtils.getLegendLayers(response)
-                  }, dom.byId("editorDiv"));
+                    //add home button if enabled 
+                    if (window.options.home_button) {//Add the home button to the small slider 
+                        require(["esri/dijit/HomeButton", "dojo/query"], lang.hitch(this, function (HomeButton, query) {
+                            var homeButton = new HomeButton({
+                                map: window.map
+                            }, domConstruct.create("div", {}, query(".esriSimpleSliderIncrementButton")[0], "after"));
+                            homeButton.startup();
+                        }));
+                    }
 
-                  legend.startup();
-
-                } else { //can edit 
-
-                  //display the toolbar if the configuration option has been enabled and the site isn't mobile.
-                  var settings = {
-                    map: window.map,
-                    layerInfos: editableLayers,
-                    toolbarVisible: (window.options.displaytoolbar && !window.appcontent.isMobile) ? true : false
-                  };
-
-                  var params = {
-                    settings: settings
-                  };
-
-                  //sbtest, create template picker instead.
-                  var layers = new Array();
-                  layers[0] = editableLayers[0].featureLayer;
-
-                  //var templatePicker = new TemplatePicker({
-                  //  featureLayers: layers,
-                  //  rows: "auto",
-                  //  columns: 2,
-                  //  grouping: false,
-                  //  style: "height: auto; overflow: auto;"
-                  //}, "editorDiv");
-
-                  var templatePicker = new TemplatePicker({
-                    featureLayers: layers,
-                    rows: "auto",
-                    columns: 2,
-                    grouping: false,
-                    style: "height: auto; overflow: auto;"
-                  }, dom.byId("editorDiv"));
-
-                  templatePicker.startup();
+                    //add address search if enabled 
+                    if (window.options.geocoder) {
+                        var options = {
+                            map: window.map,
+                            config: window.options
+                        }
+                        var myGeocoder = new CreateGeocoder(options);
+                        if (myGeocoder.geocoder && myGeocoder.geocoder.domNode) {
+                            domConstruct.place(myGeocoder.geocoder.domNode, "map", "last");
+                        }
 
 
-                  window.myDialog = new Dialog({
-                    title: "Tell us about this location (fill out all that apply)",
-                    style: "width: 300px",
-                    onHide: dojo.hitch(this, function () { window.map.graphics.clear(); })
-                  });
 
-                  window.myDialog.initMe = function () {
+                    }
 
-                    var sContent = "Food Truck. </br>"
+
+                    var editableLayers = hasEditableLayers(response.itemInfo.itemData.operationalLayers);
+
+                    //add field infos if applicable - this will contain hints if defined in the popup. Also added logic to hide fields that have visible = false. The popup takes 
+                    //care of this for the info window but not for the edit window. 
+                    array.forEach(editableLayers, lang.hitch(this, function (layer) {
+                        if (layer.featureLayer && layer.featureLayer.infoTemplate && layer.featureLayer.infoTemplate.info && layer.featureLayer.infoTemplate.info.fieldInfos) {
+                            //only display visible fields 
+                            var fields = layer.featureLayer.infoTemplate.info.fieldInfos;
+
+                            var fieldInfos = [];
+                            array.forEach(fields, function (field) {
+                                if (field.visible) {
+                                    fieldInfos.push(field);
+                                }
+                            });
+                            layer.fieldInfos = fieldInfos;
+                        }
+                    }));
+
+                    //does the web map contain any editable layers and does the logged-in user have 
+                    //edit permissions 
+                    var editable = true;
+                    var content_title = window.options.i18n.viewer.content_title;
+                    if (esriLang.isDefined(window.options.userPrivileges)) {
+                        if (array.indexOf(window.options.userPrivileges, "features:user:edit") === -1) {
+                            editable = false;
+                            //change the title to legend 
+                            content_title = content_title = window.options.i18n.viewer.legend_title;
+                        }
+                    }
+
+
+                    //sbtest var content = domConstruct.create("div", { id: "editorDiv" });
+                    var content = new ContentPane({
+                        id: "editorDivParent", region: "top"
+                    }).placeAt(dojo.byId("leftPane"));
+                    domConstruct.create("div", { id: "editorDiv" }, "editorDivParent");
+
+                    //create the Legend or Editor 
+                    window.appcontent.setPanelContent(content_title, content, "275px").then(lang.hitch(this, function () {
+                        var editorWidget;
+                        //need to create the panel for the mobile case
+                        window.appcontent.showPanelContent();
+                        window.map.reposition();
+                        window.map.resize();
+
+                        if (editableLayers.length === 0 || !editable) {
+
+
+                            console.log(window.options.i18n.viewer.errors.no_editable_layers_message);
+                            var legend = new Legend({
+                                map: window.map,
+                                layerInfos: arcgisUtils.getLegendLayers(response)
+                            }, dom.byId("editorDiv"));
+
+                            legend.startup();
+
+                        } else { //can edit 
+
+                            //display the toolbar if the configuration option has been enabled and the site isn't mobile.
+                            var settings = {
+                                map: window.map,
+                                layerInfos: editableLayers,
+                                toolbarVisible: (window.options.displaytoolbar && !window.appcontent.isMobile) ? true : false
+                            };
+
+                            var params = {
+                                settings: settings
+                            };
+
+                            //sbtest, create template picker instead.
+                            var layers = new Array();
+                            layers[0] = editableLayers[0].featureLayer;
+                            layers[0].templates[0].name = "Add a Truck!";
+
+                            //var templatePicker = new TemplatePicker({
+                            //  featureLayers: layers,
+                            //  rows: "auto",
+                            //  columns: 2,
+                            //  grouping: false,
+                            //  style: "height: auto; overflow: auto;"
+                            //}, "editorDiv");
+
+                            var templatePicker = new TemplatePicker({
+                                featureLayers: layers,
+                                rows: "auto",
+                                columns: 2,
+                                grouping: false,
+                                style: "height: auto; overflow: auto;"
+                            }, dom.byId("editorDiv"));
+
+                            templatePicker.startup();
+
+
+                            window.myDialog = new Dialog({
+                                title: "Tell us about this location (fill out all that apply)",
+                                style: "width: 200px",
+                                onHide: dojo.hitch(this, function () { window.map.graphics.clear(); })
+                            });
+
+                            window.myDialog.initMe = function () {
+
+                                var sContent = "Food Truck. </br>"
                       + "</br>"
                       + "</br>"
                       + "</br>"
                       + "<button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>";
 
-                    this.set('title', 'Tell us about this location (fill out all that apply)');
-                    this.set('style', 'width:425px');
+                                this.set('title', 'Tell us about this location (fill out all that apply)');
+                                this.set('style', 'width:400px');
 
-                    sContent = defaults.editingDialogHTML;
-
-
-                    this.set('content', sContent);
+                                sContent = defaults.editingDialogHTML;
 
 
-
-                  };
-
-                  window.myDialog.setAttributes = function (feature) {
-
-                    //requestdate
-                    var currentTime = new Date();
-                    var month = currentTime.getMonth() + 1;
-                    var day = currentTime.getDate();
-                    var year = currentTime.getFullYear();
-                    var vDt =month + "/" + day + "/" + year;
-
-                    //comments
-                    vComment = dojo.byId("txtComments").value;
-       
-                    //time of week
-                    var vTimeOfWeek=null;
-   
-                    if (dojo.byId("chkWeekday").checked) {
-                      vTimeOfWeek = "Weekday";
-                    }
-                    else if (dojo.byId("chkWeekend").checked) {
-                      vTimeOfWeek = "Weekend";
-                    }
-                    else if (dojo.byId("chkWeekBoth").checked) {
-                      vTimeOfWeek = "Both";
-                    }
-
-                    //time of day
-                    var vTimeOfDay= "Other";
-
-                    if (dojo.byId("chkMorning").checked) {
-                      vTimeOfDay = "Morning";
-                    }
-                    else if (dojo.byId("chkMidday").checked) {
-                      vTimeOfDay = "Midday";
-                    }
-                    else if (dojo.byId("chkEvening").checked) {
-                      vTimeOfDay = "Evening";
-                    }
-                    else if (dojo.byId("chkLateNight").checked) {
-                      vTimeOfDay = "Late Night";
-                    }
-
-                    //how many spots
-                    var vSpots = dojo.byId("parkingSpotCount").value;
-
-                    //sidewalk ok
-                    vSidewalkOK = dojo.byId("sidewalkOK").value;
-
-                    if(vComment!=null && vComment !="")
-                      feature.attributes.Comments = vComment;
-
-                    if(vDt!=null)
-                      feature.attributes.RequestDate = vDt;
-
-                    if (vTimeOfWeek != null)
-                      feature.attributes.Time_Of_Week = vTimeOfWeek;
-
-                    if (vTimeOfDay != null)
-                      feature.attributes.Time_Of_Day = vTimeOfDay;
-
-                    if (vSpots != null && vSpots !="")
-                      feature.attributes.HowMany= vSpots;
-
-                    if (vSidewalkOK != null && vSidewalkOK!="")
-                      feature.attributes.Sidewalk_OK = vSidewalkOK;
+                                this.set('content', sContent);
 
 
 
+                            };
 
-                  };
+                            window.myDialog.setAttributes = function (feature) {
+
+                                //requestdate
+                                var currentTime = new Date();
+                                var month = currentTime.getMonth() + 1;
+                                var day = currentTime.getDate();
+                                var year = currentTime.getFullYear();
+                                var vDt = month + "/" + day + "/" + year;
+
+                                //comments
+                                vComment = dojo.byId("Comments").value;
+
+                                //time of week
+                                var vTOD_Morning = "FALSE";
+                                var vTOD_Afternoon = "FALSE";
+                                var vTOD_Night = "FALSE";
+                                var vTOD_Late_Night = "FALSE";
+                                var vTOW_Weekday = "FALSE";
+                                var vTOW_Weekend = "FALSE";
+
+                                if (dojo.byId("TOD_Morning").checked) {
+                                    vTOD_Morning = "TRUE";
+                                }
+
+                                if (dojo.byId("TOD_Afternoon").checked) {
+                                    vTOD_Afternoon = "TRUE";
+                                }
+
+                                if (dojo.byId("TOD_Night").checked) {
+                                    vTOD_Night = "TRUE";
+                                }
+
+                                if (dojo.byId("TOD_Late_Night").checked) {
+                                    vTOD_Late_Night = "TRUE";
+                                }
+
+                                if (dojo.byId("TOW_Weekday").checked) {
+                                    vTOW_Weekday = "TRUE";
+                                }
+
+                                if (dojo.byId("TOW_Weekend").checked) {
+                                    vTOW_Weekend = "TRUE";
+                                }
+                           
+                                //how many spots
+                                var vSpots = dojo.byId("HowMany").value;
+
+                                //sidewalk ok
+                                //vSidewalkOK = dojo.byId("Sidewalk_OK").value;
+
+                                //restaurants nearby
+                                vRestaurants_Nearby = dojo.byId("Restaurants_Nearby").value;
+
+                                //parking_type
+                                vParking_Type = dojo.byId("Parking_Type").value;
+
+                                if (vComment != null && vComment != "")
+                                    feature.attributes.Comments = vComment;
+
+                                if (vParking_Type != null && vParking_Type != "")
+                                    feature.attributes.Parking_Type = vParking_Type;
+
+                                if (vDt != null)
+                                    feature.attributes.RequestDate = vDt;
+
+                                if (vTOD_Morning != null)
+                                    feature.attributes.TOD_Morning = vTOD_Morning;
+
+                                if (vTOD_Afternoon != null)
+                                    feature.attributes.TOD_Afternoon = vTOD_Afternoon;
+
+                                if (vTOD_Night != null)
+                                    feature.attributes.TOD_Night = vTOD_Night;
+
+                                if (vTOD_Late_Night != null)
+                                    feature.attributes.TOD_Late_Night = vTOD_Late_Night;
+
+                                if (vTOW_Weekday != null)
+                                    feature.attributes.TOW_Weekday = vTOW_Weekday;
+
+                                if (vTOW_Weekend != null)
+                                    feature.attributes.TOW_Weekend = vTOW_Weekend;
+                           
+
+                                if (vSpots != null && vSpots != "")
+                                    feature.attributes.HowMany = vSpots;
+
+                                if (vRestaurants_Nearby != null && vRestaurants_Nearby != "")
+                                    feature.attributes.Restaurants_Nearby = vRestaurants_Nearby;
+
+                                //if (vSidewalkOK != null && vSidewalkOK != "")
+                                 //   feature.attributes.Sidewalk_OK = vSidewalkOK;
 
 
 
-                  this.templatePicker = templatePicker;
 
-                  var drawToolbar = new Draw(map);
-
-                  var selectedTemplate;
-                  templatePicker.on("selection-change", function () {
-                    if (templatePicker.getSelected()) {
-                      selectedTemplate = templatePicker.getSelected();
-
-                    }
-                    switch (selectedTemplate.featureLayer.geometryType) {
-                      case "esriGeometryPoint":
-                        drawToolbar.activate(Draw.POINT);
-                        break;
-                      case "esriGeometryPolyline":
-                        drawToolbar.activate(Draw.POLYLINE);
-                        break;
-                      case "esriGeometryPolygon":
-                        drawToolbar.activate(Draw.POLYGON);
-                        break;
-                    }
-                  });
+                            };
 
 
-                  drawToolbar.on("draw-end", function (evt) {
 
-                    //add temporary graphic:
-                    window.map.graphics.clear();
-                    var pt = new Point(evt.geometry);
-                    var imgsymbol = new PictureMarkerSymbol({ "opacity": 1, "angle": 0, "xoffset": 0, "yoffset": 0, "type": "esriPMS", "url": "http://bit.ly/1fr5jNc", "contentType": "image/png", "width": 30, "height": 30 });
+                            this.templatePicker = templatePicker;
 
-                    var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
+                            var drawToolbar = new Draw(map);
+
+                            var selectedTemplate;
+                            templatePicker.on("selection-change", function () {
+                                if (templatePicker.getSelected()) {
+                                    selectedTemplate = templatePicker.getSelected();
+
+                                }
+                                switch (selectedTemplate.featureLayer.geometryType) {
+                                    case "esriGeometryPoint":
+                                        drawToolbar.activate(Draw.POINT);
+                                        break;
+                                    case "esriGeometryPolyline":
+                                        drawToolbar.activate(Draw.POLYLINE);
+                                        break;
+                                    case "esriGeometryPolygon":
+                                        drawToolbar.activate(Draw.POLYGON);
+                                        break;
+                                }
+                            });
+
+
+                            drawToolbar.on("draw-end", function (evt) {
+
+                                //add temporary graphic:
+                                window.map.graphics.clear();
+                                var pt = new Point(evt.geometry);
+                                var imgsymbol = new PictureMarkerSymbol({ "opacity": 1, "angle": 0, "xoffset": 0, "yoffset": 0, "type": "esriPMS", "url": "http://bit.ly/1fr5jNc", "contentType": "image/png", "width": 30, "height": 30 });
+
+                                var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
                           new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                           new Color([255, 0, 0, 1]), 11),
                           new Color([255, 0, 0, 1])
                         );
-                    graphic = new Graphic(pt, imgsymbol);
-                    map.graphics.add(graphic);
-                    //
+                                graphic = new Graphic(pt, imgsymbol);
+                                map.graphics.add(graphic);
+                                //
 
-                    drawToolbar.deactivate();
+                                drawToolbar.deactivate();
 
-                    window.myDialog.initMe();
-                    window.myDialog.show();
+                                window.myDialog.initMe();
+                                window.myDialog.show();
 
-                    var ok = dojo.byId("OKButton");
-                    var cb = dojo.byId("cancelButton");
-                    dojo.connect(cb,"onclick",lang.hitch(this,function(){
+                                var ok = dojo.byId("OKButton");
+                                var cb = dojo.byId("cancelButton");
+                                dojo.connect(cb, "onclick", lang.hitch(this, function () {
 
-                      window.map.graphics.clear();
-                      window.myDialog.hide();
-                      this.templatePicker.clearSelection();
-                      drawToolbar.deactivate();
+                                    window.map.graphics.clear();
+                                    window.myDialog.hide();
+                                    this.templatePicker.clearSelection();
+                                    drawToolbar.deactivate();
+
+                                }));
+
+                                this.locationGeometry = evt.geometry;
+
+                                dojo.connect(ok, "onclick", lang.hitch(this, function () {
+
+                                    selectedTemplate = this.templatePicker.getSelected();
+
+                                    if (selectedTemplate == null) {
+                                        alert("debug: no selected template");
+                                        return;
+
+                                    }
+
+                                    newGeometry = this.locationGeometry;
+
+                                    var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
+                                    var newGraphic = new Graphic(newGeometry, null, newAttributes);
+                                    window.myDialog.setAttributes(newGraphic);
+                                    selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
+
+                                    window.map.graphics.clear();
+                                    window.myDialog.hide();
+                                    this.templatePicker.clearSelection();
+                                    drawToolbar.deactivate();
+
+                                    alert("Thank you for your survey submission.");
+
+                                }));
+
+                            });
+
+                            window.map.enableSnapping();
+                            if (!dojo.isIE) {
+                                adjustPopup();
+                            }
+
+                        }
+
+                        if (window.appcontent.isMobile) {
+
+                            //add an additional  button to the header. This method accepts text and/or an image. If an image url is supplied that image
+                            //will be used as the button icon. Can add more that one button using the addMobileButton method. Additional buttons will
+                            //display on the right side.
+                            var btn = window.appcontent.addMobileButton("geo", "images/gps.png");
+
+                            on(btn, "click", function () {
+                                if (navigator.geolocation) {
+                                    navigator.geolocation.getCurrentPosition(zoomToLocation, locationError);
+                                }
+                            });
+
+                            //listen for info window and maximize
+                            on(window.map.infoWindow, "show", function () {
+                                window.map.infoWindow.maximize();
+                            });
+
+                            //when template picker selection changes close window
+                            if (editorWidget && editorWidget.templatePicker) {
+                                window.appcontent.hidePanelContent();
+                                editorWidget.templatePicker.on("selection-change", lang.hitch(this, function () {
+                                    window.appcontent.hidePanelContent();
+                                }));
+
+                            }
+
+
+                        } else {
+
+                            //add the location button for desktop if enabled. 
+                            if (window.options.locate_button) {
+                                require(["esri/dijit/LocateButton"], lang.hitch(this, function (LocateButton) {
+                                    //add the location button as a child of the map div. This button
+                                    //is positioned using css. Search main.css for the locateDiv selector
+                                    var locateDiv = domConstruct.create("div", { id: "locateDiv" }, "map");
+                                    var locationButton = new LocateButton({
+                                        map: window.map
+                                    }, locateDiv);
+                                    locationButton.startup();
+                                }));
+                            }
+
+                        }
 
                     }));
 
-                    this.locationGeometry = evt.geometry;
+                    //var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
+                    //domConstruct.place(descriptionDiv, "editorDiv", "after");
 
-                    dojo.connect(ok, "onclick", lang.hitch(this, function () {
+                    var descriptionDiv = new ContentPane({
+                        id: "description"
+                    }).placeAt("editorDiv", "after");
 
-                      selectedTemplate = this.templatePicker.getSelected();
+                    //var descriptionDiv2 = domConstruct.create("div", { id: "description" }, dojo.byId("editorDiv"), "after");
 
-                      if (selectedTemplate == null) {
-                        alert("debug: no selected template");
-                        return;
-
-                      }
-
-                      newGeometry = this.locationGeometry;
-
-                      var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
-                      var newGraphic = new Graphic(newGeometry, null, newAttributes);
-                      window.myDialog.setAttributes(newGraphic);
-                      selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
-
-                      window.map.graphics.clear();
-                      window.myDialog.hide();
-                      this.templatePicker.clearSelection();
-                      drawToolbar.deactivate();
-
-                      alert("Thank you for your survey submission.");
-
-                    }));
-
-                  });
-
-                  window.map.enableSnapping();
-                  if (!dojo.isIE) {
-                    adjustPopup();
-                  }
-
-                }
-
-                if (window.appcontent.isMobile) {
-
-                  //add an additional  button to the header. This method accepts text and/or an image. If an image url is supplied that image
-                  //will be used as the button icon. Can add more that one button using the addMobileButton method. Additional buttons will
-                  //display on the right side.
-                  var btn = window.appcontent.addMobileButton("geo", "images/gps.png");
-
-                  on(btn, "click", function () {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(zoomToLocation, locationError);
+                    if (dom.byId("description")) {
+                        dom.byId("description").innerHTML = window.options.description || response.itemInfo.item.description || "";
                     }
-                  });
-
-                  //listen for info window and maximize
-                  on(window.map.infoWindow, "show", function () {
-                    window.map.infoWindow.maximize();
-                  });
-
-                  //when template picker selection changes close window
-                  if (editorWidget && editorWidget.templatePicker) {
-                    window.appcontent.hidePanelContent();
-                    editorWidget.templatePicker.on("selection-change", lang.hitch(this, function () {
-                      window.appcontent.hidePanelContent();
-                    }));
-
-                  }
-
-
-                } else {
-
-                  //add the location button for desktop if enabled. 
-                  if (window.options.locate_button) {
-                    require(["esri/dijit/LocateButton"], lang.hitch(this, function (LocateButton) {
-                      //add the location button as a child of the map div. This button
-                      //is positioned using css. Search main.css for the locateDiv selector
-                      var locateDiv = domConstruct.create("div", { id: "locateDiv" }, "map");
-                      var locationButton = new LocateButton({
-                        map: window.map
-                      }, locateDiv);
-                      locationButton.startup();
-                    }));
-                  }
-
-                }
-
-              }));
-
-              //var descriptionDiv = domConstruct.toDom("<div id='description' ></div>");
-              //domConstruct.place(descriptionDiv, "editorDiv", "after");
-
-              var descriptionDiv = new ContentPane({
-                id: "description"
-              }).placeAt("editorDiv","after");
-
-              //var descriptionDiv2 = domConstruct.create("div", { id: "description" }, dojo.byId("editorDiv"), "after");
-
-              if (dom.byId("description")) {
-                dom.byId("description").innerHTML = window.options.description || response.itemInfo.item.description || "";
-              }
 
 
 
 
-              //add splashscreen
-              //read  format
-              var splashscreenURL = "Splashscreen.html";
-              var formRequest = esriRequest({
-                url: splashscreenURL,
-                handleAs: "text",
-                callbackParamName: "callback"
-              });
-              formRequest.then(
+                    //add splashscreen
+                    //read  format
+                    var splashscreenURL = "Splashscreen.html";
+                    var formRequest = esriRequest({
+                        url: splashscreenURL,
+                        handleAs: "text",
+                        callbackParamName: "callback"
+                    });
+                    formRequest.then(
                 function (response) {
-                  console.log("Success: ", response);
+                    console.log("Success: ", response);
 
-                  defaults.splashscreenURLHTML = String(response).replace("\r\n", "");
-                  splash = domConstruct.toDom(defaults.splashscreenURLHTML);
-                  domConstruct.place(splash, "mainWindow", "last");
-                  dojo.byId('divSplashContent').innerHTML = defaults.splashScreenMessage;
-                  dojo.byId('divSplashScreenContainer').style.display = "block";
-                  dojo.addClass(dojo.byId('divSplashScreenContent'), "divSplashScreenDialogContent");
-                  SetSplashScreenHeight();
+                    defaults.splashscreenURLHTML = String(response).replace("\r\n", "");
+                    splash = domConstruct.toDom(defaults.splashscreenURLHTML);
+                    domConstruct.place(splash, "mainWindow", "last");
+                    dojo.byId('divSplashContent').innerHTML = defaults.splashScreenMessage;
+                    dojo.byId('divSplashScreenContainer').style.display = "block";
+                    dojo.addClass(dojo.byId('divSplashScreenContent'), "divSplashScreenDialogContent");
+                    SetSplashScreenHeight();
 
                 }, function (error) {
-                  console.log("Error: ", error.message);
+                    console.log("Error: ", error.message);
                 });
-              //
-            }
-
-
-
-            function hasEditableLayers(layers) {
-              var editableLayers = [];
-              array.forEach(layers, function (layer) {
-
-                if (layer && layer.layerObject) {
-
-                  var eLayer = layer.layerObject;
-
-                  if (eLayer instanceof esri.layers.FeatureLayer && eLayer.isEditable()) {
-
-                    editableLayers.push({ 'featureLayer': eLayer })
-
-                  }
-
-                }
-              });
-              return editableLayers;
-            }
-
-            //Set height for splash screen
-            function SetSplashScreenHeight() {
-              var height = dojo.coords(dojo.byId('divSplashScreenContent')).h - 80;
-              dojo.byId('divSplashContent').style.height = (height + 14) + "px";
-              CreateScrollbar(dojo.byId("divSplashContainer"), dojo.byId("divSplashContent"));
-            }
-
-            function CreateScrollbar(container, content) {
-              var yMax;
-              var pxLeft, pxTop, xCoord, yCoord;
-              var scrollbar_track;
-              var isHandleClicked = false;
-              this.container = container;
-              this.content = content;
-              content.scrollTop = 0;
-              if (dojo.byId(container.id + 'scrollbar_track')) {
-                RemoveChildren(dojo.byId(container.id + 'scrollbar_track'));
-                container.removeChild(dojo.byId(container.id + 'scrollbar_track'));
-              }
-              if (!dojo.byId(container.id + 'scrollbar_track')) {
-                scrollbar_track = document.createElement('div');
-                scrollbar_track.id = container.id + "scrollbar_track";
-                scrollbar_track.className = "scrollbar_track";
-              }
-              else {
-                scrollbar_track = dojo.byId(container.id + 'scrollbar_track');
-              }
-              var containerHeight = dojo.coords(container);
-              scrollbar_track.style.right = 5 + 'px';
-              var scrollbar_handle = document.createElement('div');
-              scrollbar_handle.className = 'scrollbar_handle';
-              scrollbar_handle.id = container.id + "scrollbar_handle";
-              scrollbar_track.appendChild(scrollbar_handle);
-              container.appendChild(scrollbar_track);
-              if ((content.scrollHeight - content.offsetHeight) <= 5) {
-                scrollbar_handle.style.display = 'none';
-                scrollbar_track.style.display = 'none';
-                return;
-              }
-              else {
-                scrollbar_handle.style.display = 'block';
-                scrollbar_track.style.display = 'block';
-                scrollbar_handle.style.height = Math.max(this.content.offsetHeight * (this.content.offsetHeight / this.content.scrollHeight), 25) + 'px';
-                yMax = this.content.offsetHeight - scrollbar_handle.offsetHeight;
-                yMax = yMax - 5; //for getting rounded bottom of handle
-                if (window.addEventListener) {
-                  content.addEventListener('DOMMouseScroll', ScrollDiv, false);
-                }
-                content.onmousewheel = function (evt) {
-                  console.log(content.id);
-                  ScrollDiv(evt);
-                }
-              }
-
-              //Attaching events to scrollbar components - Using mouse wheel
-              function ScrollDiv(evt) {
-                var evt = window.event || evt //equalize event object
-                var delta = evt.detail ? evt.detail * (-120) : evt.wheelDelta //delta returns +120 when wheel is scrolled up, -120 when scrolled down
-                pxTop = scrollbar_handle.offsetTop;
-
-                if (delta <= -120) {
-                  var y = pxTop + 10;
-                  if (y > yMax) y = yMax // Limit vertical movement
-                  if (y < 0) y = 0 // Limit vertical movement
-                  scrollbar_handle.style.top = y + "px";
-                  content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-
-                }
-                else {
-                  var y = pxTop - 10;
-                  if (y > yMax) y = yMax // Limit vertical movement
-                  if (y < 0) y = 2 // Limit vertical movement
-                  scrollbar_handle.style.top = (y - 2) + "px";
-                  content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-                }
-              }
-
-              //Attaching events to scrollbar components - Click and Drag
-              scrollbar_track.onclick = function (evt) {
-                if (!isHandleClicked) {
-                  evt = (evt) ? evt : event;
-                  pxTop = scrollbar_handle.offsetTop // Sliders vertical position at start of slide.
-                  var offsetY;
-                  if (!evt.offsetY) {
-                    var coords = dojo.coords(evt.target);
-                    offsetY = evt.layerY - coords.t;
-                  }
-                  else
-                    offsetY = evt.offsetY;
-                  if (offsetY < scrollbar_handle.offsetTop) {
-                    scrollbar_handle.style.top = offsetY + "px";
-                    content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-                  }
-                  else if (offsetY > (scrollbar_handle.offsetTop + scrollbar_handle.clientHeight)) {
-                    var y = offsetY - scrollbar_handle.clientHeight;
-                    if (y > yMax) y = yMax // Limit vertical movement
-                    if (y < 0) y = 0 // Limit vertical movement
-                    scrollbar_handle.style.top = y + "px";
-                    content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-                  }
-                  else {
-                    return;
-                  }
-                }
-                isHandleClicked = false;
-              };
-
-              //Attaching events to scrollbar components - Releasing mouse click
-              scrollbar_handle.onmousedown = function (evt) {
-                isHandleClicked = true;
-                evt = (evt) ? evt : event;
-                evt.cancelBubble = true;
-                if (evt.stopPropagation) evt.stopPropagation();
-                pxTop = scrollbar_handle.offsetTop // Sliders vertical position at start of slide.
-                yCoord = evt.screenY // Vertical mouse position at start of slide.
-                document.body.style.MozUserSelect = 'none';
-                document.body.style.userSelect = 'none';
-                document.onselectstart = function () {
-                  return false;
-                }
-                document.onmousemove = function (evt) {
-                  evt = (evt) ? evt : event;
-                  evt.cancelBubble = true;
-                  if (evt.stopPropagation) evt.stopPropagation();
-                  var y = pxTop + evt.screenY - yCoord;
-                  if (y > yMax) y = yMax // Limit vertical movement
-                  if (y < 0) y = 0 // Limit vertical movement
-                  scrollbar_handle.style.top = y + "px";
-                  content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-                }
-              };
-
-              document.onmouseup = function () {
-                document.body.onselectstart = null;
-                document.onmousemove = null;
-              };
-
-              scrollbar_handle.onmouseout = function (evt) {
-                document.body.onselectstart = null;
-              };
-
-              var startPos;
-              var scrollingTimer;
-
-              dojo.connect(container, "touchstart", function (evt) {
-                touchStartHandler(evt);
-              });
-
-              dojo.connect(container, "touchmove", function (evt) {
-                touchMoveHandler(evt);
-              });
-
-              dojo.connect(container, "touchend", function (evt) {
-                touchEndHandler(evt);
-              });
-
-              //Handlers for Touch Events
-              function touchStartHandler(e) {
-                startPos = e.touches[0].pageY;
-              }
-
-              function touchMoveHandler(e) {
-                var touch = e.touches[0];
-                e.cancelBubble = true;
-                if (e.stopPropagation) e.stopPropagation();
-                e.preventDefault();
-
-                pxTop = scrollbar_handle.offsetTop;
-                var y;
-                if (startPos > touch.pageY) {
-                  y = pxTop + 10;
-                }
-                else {
-                  y = pxTop - 10;
+                    //
                 }
 
-                //setting scrollbar handle
-                if (y > yMax) y = yMax // Limit vertical movement
-                if (y < 0) y = 0 // Limit vertical movement
-                scrollbar_handle.style.top = y + "px";
-
-                //setting content position
-                content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
-
-                scrolling = true;
-                startPos = touch.pageY;
-              }
-
-              function touchEndHandler(e) {
-                scrollingTimer = setTimeout(function () { clearTimeout(scrollingTimer); scrolling = false; }, 100);
-              }
-              //stop touch event
-            }
 
 
+                function hasEditableLayers(layers) {
+                    var editableLayers = [];
+                    array.forEach(layers, function (layer) {
 
-            function zoomToLocation(location) {
-              //Add  a graphic to the map to show the current location. Location is determined using geolocation api
-              window.map.graphics.clear();
-              var pt = new Point(location.coords);
-              var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
+                        if (layer && layer.layerObject) {
+
+                            var eLayer = layer.layerObject;
+
+                            if (eLayer instanceof esri.layers.FeatureLayer && eLayer.isEditable()) {
+
+                                editableLayers.push({ 'featureLayer': eLayer })
+
+                            }
+
+                        }
+                    });
+                    return editableLayers;
+                }
+
+                //Set height for splash screen
+                function SetSplashScreenHeight() {
+                    var height = dojo.coords(dojo.byId('divSplashScreenContent')).h - 80;
+                    dojo.byId('divSplashContent').style.height = (height + 14) + "px";
+                    CreateScrollbar(dojo.byId("divSplashContainer"), dojo.byId("divSplashContent"));
+                }
+
+                function CreateScrollbar(container, content) {
+                    var yMax;
+                    var pxLeft, pxTop, xCoord, yCoord;
+                    var scrollbar_track;
+                    var isHandleClicked = false;
+                    this.container = container;
+                    this.content = content;
+                    content.scrollTop = 0;
+                    if (dojo.byId(container.id + 'scrollbar_track')) {
+                        RemoveChildren(dojo.byId(container.id + 'scrollbar_track'));
+                        container.removeChild(dojo.byId(container.id + 'scrollbar_track'));
+                    }
+                    if (!dojo.byId(container.id + 'scrollbar_track')) {
+                        scrollbar_track = document.createElement('div');
+                        scrollbar_track.id = container.id + "scrollbar_track";
+                        scrollbar_track.className = "scrollbar_track";
+                    }
+                    else {
+                        scrollbar_track = dojo.byId(container.id + 'scrollbar_track');
+                    }
+                    var containerHeight = dojo.coords(container);
+                    scrollbar_track.style.right = 5 + 'px';
+                    var scrollbar_handle = document.createElement('div');
+                    scrollbar_handle.className = 'scrollbar_handle';
+                    scrollbar_handle.id = container.id + "scrollbar_handle";
+                    scrollbar_track.appendChild(scrollbar_handle);
+                    container.appendChild(scrollbar_track);
+                    if ((content.scrollHeight - content.offsetHeight) <= 5) {
+                        scrollbar_handle.style.display = 'none';
+                        scrollbar_track.style.display = 'none';
+                        return;
+                    }
+                    else {
+                        scrollbar_handle.style.display = 'block';
+                        scrollbar_track.style.display = 'block';
+                        scrollbar_handle.style.height = Math.max(this.content.offsetHeight * (this.content.offsetHeight / this.content.scrollHeight), 25) + 'px';
+                        yMax = this.content.offsetHeight - scrollbar_handle.offsetHeight;
+                        yMax = yMax - 5; //for getting rounded bottom of handle
+                        if (window.addEventListener) {
+                            content.addEventListener('DOMMouseScroll', ScrollDiv, false);
+                        }
+                        content.onmousewheel = function (evt) {
+                            console.log(content.id);
+                            ScrollDiv(evt);
+                        }
+                    }
+
+                    //Attaching events to scrollbar components - Using mouse wheel
+                    function ScrollDiv(evt) {
+                        var evt = window.event || evt //equalize event object
+                        var delta = evt.detail ? evt.detail * (-120) : evt.wheelDelta //delta returns +120 when wheel is scrolled up, -120 when scrolled down
+                        pxTop = scrollbar_handle.offsetTop;
+
+                        if (delta <= -120) {
+                            var y = pxTop + 10;
+                            if (y > yMax) y = yMax // Limit vertical movement
+                            if (y < 0) y = 0 // Limit vertical movement
+                            scrollbar_handle.style.top = y + "px";
+                            content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+
+                        }
+                        else {
+                            var y = pxTop - 10;
+                            if (y > yMax) y = yMax // Limit vertical movement
+                            if (y < 0) y = 2 // Limit vertical movement
+                            scrollbar_handle.style.top = (y - 2) + "px";
+                            content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+                        }
+                    }
+
+                    //Attaching events to scrollbar components - Click and Drag
+                    scrollbar_track.onclick = function (evt) {
+                        if (!isHandleClicked) {
+                            evt = (evt) ? evt : event;
+                            pxTop = scrollbar_handle.offsetTop // Sliders vertical position at start of slide.
+                            var offsetY;
+                            if (!evt.offsetY) {
+                                var coords = dojo.coords(evt.target);
+                                offsetY = evt.layerY - coords.t;
+                            }
+                            else
+                                offsetY = evt.offsetY;
+                            if (offsetY < scrollbar_handle.offsetTop) {
+                                scrollbar_handle.style.top = offsetY + "px";
+                                content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+                            }
+                            else if (offsetY > (scrollbar_handle.offsetTop + scrollbar_handle.clientHeight)) {
+                                var y = offsetY - scrollbar_handle.clientHeight;
+                                if (y > yMax) y = yMax // Limit vertical movement
+                                if (y < 0) y = 0 // Limit vertical movement
+                                scrollbar_handle.style.top = y + "px";
+                                content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+                            }
+                            else {
+                                return;
+                            }
+                        }
+                        isHandleClicked = false;
+                    };
+
+                    //Attaching events to scrollbar components - Releasing mouse click
+                    scrollbar_handle.onmousedown = function (evt) {
+                        isHandleClicked = true;
+                        evt = (evt) ? evt : event;
+                        evt.cancelBubble = true;
+                        if (evt.stopPropagation) evt.stopPropagation();
+                        pxTop = scrollbar_handle.offsetTop // Sliders vertical position at start of slide.
+                        yCoord = evt.screenY // Vertical mouse position at start of slide.
+                        document.body.style.MozUserSelect = 'none';
+                        document.body.style.userSelect = 'none';
+                        document.onselectstart = function () {
+                            return false;
+                        }
+                        document.onmousemove = function (evt) {
+                            evt = (evt) ? evt : event;
+                            evt.cancelBubble = true;
+                            if (evt.stopPropagation) evt.stopPropagation();
+                            var y = pxTop + evt.screenY - yCoord;
+                            if (y > yMax) y = yMax // Limit vertical movement
+                            if (y < 0) y = 0 // Limit vertical movement
+                            scrollbar_handle.style.top = y + "px";
+                            content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+                        }
+                    };
+
+                    document.onmouseup = function () {
+                        document.body.onselectstart = null;
+                        document.onmousemove = null;
+                    };
+
+                    scrollbar_handle.onmouseout = function (evt) {
+                        document.body.onselectstart = null;
+                    };
+
+                    var startPos;
+                    var scrollingTimer;
+
+                    dojo.connect(container, "touchstart", function (evt) {
+                        touchStartHandler(evt);
+                    });
+
+                    dojo.connect(container, "touchmove", function (evt) {
+                        touchMoveHandler(evt);
+                    });
+
+                    dojo.connect(container, "touchend", function (evt) {
+                        touchEndHandler(evt);
+                    });
+
+                    //Handlers for Touch Events
+                    function touchStartHandler(e) {
+                        startPos = e.touches[0].pageY;
+                    }
+
+                    function touchMoveHandler(e) {
+                        var touch = e.touches[0];
+                        e.cancelBubble = true;
+                        if (e.stopPropagation) e.stopPropagation();
+                        e.preventDefault();
+
+                        pxTop = scrollbar_handle.offsetTop;
+                        var y;
+                        if (startPos > touch.pageY) {
+                            y = pxTop + 10;
+                        }
+                        else {
+                            y = pxTop - 10;
+                        }
+
+                        //setting scrollbar handle
+                        if (y > yMax) y = yMax // Limit vertical movement
+                        if (y < 0) y = 0 // Limit vertical movement
+                        scrollbar_handle.style.top = y + "px";
+
+                        //setting content position
+                        content.scrollTop = Math.round(scrollbar_handle.offsetTop / yMax * (content.scrollHeight - content.offsetHeight));
+
+                        scrolling = true;
+                        startPos = touch.pageY;
+                    }
+
+                    function touchEndHandler(e) {
+                        scrollingTimer = setTimeout(function () { clearTimeout(scrollingTimer); scrolling = false; }, 100);
+                    }
+                    //stop touch event
+                }
+
+
+
+                function zoomToLocation(location) {
+                    //Add  a graphic to the map to show the current location. Location is determined using geolocation api
+                    window.map.graphics.clear();
+                    var pt = new Point(location.coords);
+                    var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12,
                     new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                     new Color([102, 255, 255, 0.5]), 8),
                     new Color([102, 255, 255, 0.9])
                   );
-              graphic = new Graphic(pt, symbol);
-              map.graphics.add(graphic);
-              var zoom = window.map.getZoom() || 12;
-              map.centerAndZoom(pt, zoom);
-            }
-
-            function locationError(error) {
-
-              switch (error.code) {
-                case error.PERMISSION_DENIED:
-                  alert("Location not provided");
-                  break;
-
-                case error.POSITION_UNAVAILABLE:
-                  alert("Current location not available");
-                  break;
-
-                case error.TIMEOUT:
-                  alert("Timeout");
-                  break;
-
-                default:
-                  alert("unknown error");
-                  break;
-              }
-            }
-
-            function adjustPopup() {
-              var box = domGeometry.getContentBox(window.map.container);
-
-              //sbtest var width = 270, height = 300, // defaults
-              var width = 500, height = 300
-
-              newWidth = Math.round(box.w * 0.60),
-              newHeight = Math.round(box.h * 0.45);
-              if (newWidth < width) {
-                width = newWidth;
-              }
-
-              if (newHeight < height) {
-                height = newHeight;
-              }
-
-              window.map.infoWindow.resize(width, height);
-            }
-
-
-
-            function orientationChanged() {
-              if (window.map) {
-                if (window.appcontent.isMobile) {
-                  //resize the info window if displayed.
-                  if (window.map.infoWindow.isShowing) {
-                    window.map.infoWindow.reposition();
-                    window.map.infoWindow.maximize();
-                  }
+                    graphic = new Graphic(pt, symbol);
+                    map.graphics.add(graphic);
+                    var zoom = window.map.getZoom() || 12;
+                    map.centerAndZoom(pt, zoom);
                 }
-                window.map.reposition();
-                window.map.resize();
-              }
-            }
+
+                function locationError(error) {
+
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            alert("Location not provided");
+                            break;
+
+                        case error.POSITION_UNAVAILABLE:
+                            alert("Current location not available");
+                            break;
+
+                        case error.TIMEOUT:
+                            alert("Timeout");
+                            break;
+
+                        default:
+                            alert("unknown error");
+                            break;
+                    }
+                }
+
+                function adjustPopup() {
+                    var box = domGeometry.getContentBox(window.map.container);
+
+                    //sbtest var width = 270, height = 300, // defaults
+                    var width = 500, height = 300
+
+                    newWidth = Math.round(box.w * 0.60),
+              newHeight = Math.round(box.h * 0.45);
+                    if (newWidth < width) {
+                        width = newWidth;
+                    }
+
+                    if (newHeight < height) {
+                        height = newHeight;
+                    }
+
+                    window.map.infoWindow.resize(width, height);
+                }
 
 
-          });
+
+                function orientationChanged() {
+                    if (window.map) {
+                        if (window.appcontent.isMobile) {
+                            //resize the info window if displayed.
+                            if (window.map.infoWindow.isShowing) {
+                                window.map.infoWindow.reposition();
+                                window.map.infoWindow.maximize();
+                            }
+                        }
+                        window.map.reposition();
+                        window.map.resize();
+                    }
+                }
+
+
+            });
 
 
         });

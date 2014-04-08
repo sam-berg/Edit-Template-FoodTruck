@@ -1,5 +1,6 @@
 ﻿
-  <div id="divInputForm" style="width:auto" >
+
+  <div id="divInputForm" style="width:400px; overflow:hidden" >
         <table>
       <!--    <tr>
             <td><span>Tell us about this location (fill out all that apply)</span></td>
@@ -11,101 +12,90 @@
          
          </tr>
         </table>
+
         <table id="tableInput" >
         
 
-         <tr><td style="width:200px">
+         <tr><td style="width:200px;" >
            
            <table >
              <tr><td>
-                <input id="chkWeekday" name="timeofweek" type="radio" /><label for="chkWeekday">Weekday</label>
+                <input id="TOW_Weekday" name="TOW_Weekday" type="checkbox" /><label for="chkWeekday">Weekday</label>
               </td></tr>
                 
                <tr><td>
-                <input id="chkWeekend" name="timeofweek" type="radio"/><label for="radio">Weekend</label>
+                <input id="TOW_Weekend"  name="TOW_Weekend" type="checkbox"/><label for="radio">Weekend</label>
               </td></tr>
 
-                 <tr><td>
-                <input id="chkWeekBoth" name="timeofweek" type="radio"/><label for="radio" id="chkBoth">Both</label>
-              </td></tr>
 
            </table>
 
           </td>
 
-
-           <td>
+           <td style="width:200px">
            
            <table>
              <tr><td>
-                <input id="chkMorning" name="timeofday" type="radio" /><label for="chkMorning">Morning</label>
+                <input id="TOD_Morning" name="TOD_Morning" type="checkbox" /><label for="chkMorning">Morning</label>
               </td></tr>
                 
                <tr><td>
-                <input id="chkMidday" name="timeofday" type="radio" /><label for="chkMidday">Midday</label>
+                <input id="TOD_Afternoon" name="TOD_Afternoon" type="checkbox" /><label for="chkAfternoon">Afternoon</label>
               </td></tr>
 
               <tr><td>
-                <input id="chkEvening" name="timeofday" type="radio" /><label for="chkEvening">Evening</label>
+                <input id="TOD_Night" name="TOD_Night" type="checkbox" /><label for="chkEvening">Night</label>
               </td></tr>
                 
                <tr><td>
-                <input id="chkLateNight" name="timeofday" type="radio" /><label for="chkLateNight">Late Night</label>
+                <input id="TOD_Late_Night" name="TOD_Late_Night" type="checkbox" /><label for="chkLateNight">Late Night</label>
               </td></tr>
 
            </table>
 
           </td>
 
-
-
-
          </tr>
        
-<!--           <tr>
+           <tr>
            <td>
-             <table><tr><td><span>Do you know the neighborhood this location is in?</span></td></tr></table>
+           <span>How Many Parking Spots Are There?</span>
+           </td>
+            <td >
+                    <select id="HowMany" name="HowMany" style="width:156px; margin-left:10px">
+              <option value="One">One</option>
+              <option value="Two">Two</option>
+              <option value="Three">Three</option>
+          </select>
             </td>
          
          </tr>
 
-          <tr><td>
-           <select style="width:250px">
-              <option value=""></option>
-              
+   <tr>
+   <td><span>Parking Type?</span></td>
+
+               <td>
+           <select name="Parking_Type" id="Parking_Type" 
+                       style="width:156px; margin-left: 10px;">
+             <option value="I don't know">I don't know</option>
+             <option value="Metered">Metered</option>
+             <option value="Non-Metered">Non-Metered</option>
+             <option value="Handicapped">Handicapped</option>   
+             <option value="Resident Only">Resident Only</option>         
           </select>
-          </td></tr>-->
+          </td>
+   </tr>    
 
 
        </table>
-    <table>
-      <tr>
-           <td>
-             <table><tr><td><span>How many parking spots are here?</span></td>
 
-               <td>
-           <select id="parkingSpotCount" style="width:100px; margin-left: 10px;">
-             <option value=""></option>
-             <option value="One">One</option>
-             <option value="Two">Two</option>
-             <option value="Three">Three</option>           
-          </select>
-          </td>
-                    </tr></table>
-            </td>
-
-         
-         </tr>
-
-
-    </table>
-    <table>
+<!--    <table>
      <tr>
           <td>
           <span>Is the sidewalk access OK?</span>
           </td>
           <td>
-            <select style="width:100px; margin-left: 67px;" id="sidewalkOK">
+            <select name="Sidwalk_OK" style="width:100px; margin-left: 67px;" id="sidewalkOK">
              <option value=""></option>
              <option value="Yes">Yes</option>
              <option value="No">No</option>        
@@ -114,27 +104,36 @@
         </tr>
 
     </table>
-
-<!--      <table>
+-->
+      <table>
         <tr>
-          <td>
-          <span>Please list any restaurants that are nearby:</span>
+          <td >
+          <span>Please List Nearby Restaurants:</span>
           </td>
           <td>
-            <input style="width:200px" type="text" id="txtRestaurants" />
+            <input name="Restaurants_Nearby" style="width:150px; margin-left:10px" 
+                  type="text" id="Restaurants_Nearby" />
           </td>
         </tr>
-      </table>-->
+      </table>
 
         <table>
         <tr>
-          <td>
+          <td class="style2">
           <span>Comments:</span>
           </td>
-          <td>
-            <input style="width:275px; margin-left: 25px;" type="text" id="txtComments" />
+ 
+        </tr>
+        <tr>
+                 <td class="style2">
+            <input name="Comments" style="width:354px;  margin-left: 0px;" type="text" 
+                  id="Comments" />
           </td>
         </tr>
+ <!--       <tr>
+        <td><span>Why Are You Here?</span></td>
+        <td><input name="WhyHere" style="margin-left: 25px;" type="text" id="txtWhyHere" /></td>
+        </tr>-->
       </table>
   <table width="100%" ><tr><td style="text-align: right"><button dojoType='dijit.form.Button' type='button' id='OKButton' >OK</button>
                         </td><td width="85px" style="text-align: right">  <button data-dojo-type="dijit/form/Button" type="button" id="cancelButton" style="margin-right: 10px">Cancel</button>
