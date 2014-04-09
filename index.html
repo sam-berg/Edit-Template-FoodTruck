@@ -485,7 +485,7 @@
                             var drawToolbar = new Draw(map);
 
                             //sbtest
-                           // drawToolbar.activate(Draw.POINT);
+                            drawToolbar.activate(Draw.POINT);
 
                             var selectedTemplate;
                             templatePicker.on("selection-change", function () {
@@ -536,7 +536,8 @@
                                     window.myDialog.hide();
                                     this.templatePicker.clearSelection();
                                     drawToolbar.deactivate();
-
+                                  //sbtest
+                                    drawToolbar.activate(Draw.POINT);
                                 }));
 
                                 this.locationGeometry = evt.geometry;
@@ -546,9 +547,11 @@
                                     selectedTemplate = this.templatePicker.getSelected();
 
                                     if (selectedTemplate == null) {
-                                        alert("debug: no selected template");
-                                        return;
-                                        //selectedTemplate = this.templatePicker.featureLayers[0].templates[0];
+                                        //alert("debug: no selected template");
+                                        //return;
+                                        selectedTemplate = {};// this.templatePicker.featureLayers[0].templates[0];
+                                        selectedTemplate.featureLayer = this.templatePicker.featureLayers[0];
+                                        selectedTemplate.template = this.templatePicker.featureLayers[0].templates[0];
                                     }
 
                                     newGeometry = this.locationGeometry;
@@ -565,6 +568,8 @@
 
                                     alert("Thank you for your survey submission.");
 
+                                  //sbtest
+                                    drawToolbar.activate(Draw.POINT);
                                 }));
 
                             });
