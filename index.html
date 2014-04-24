@@ -544,32 +544,42 @@
 
                         dojo.connect(ok, "onclick", lang.hitch(this, function () {
 
-                          selectedTemplate = this.templatePicker.getSelected();
+                          try
+                          {
+                            selectedTemplate = this.templatePicker.getSelected();
 
-                          if (selectedTemplate == null) {
-                            //alert("debug: no selected template");
-                            //return;
-                            selectedTemplate = {};// this.templatePicker.featureLayers[0].templates[0];
-                            selectedTemplate.featureLayer = this.templatePicker.featureLayers[0];
-                            selectedTemplate.template = this.templatePicker.featureLayers[0].templates[0];
+                            if (selectedTemplate == null) {
+                              //alert("debug: no selected template");
+                              //return;
+                              selectedTemplate = {};// this.templatePicker.featureLayers[0].templates[0];
+                              selectedTemplate.featureLayer = this.templatePicker.featureLayers[0];
+                              selectedTemplate.template = this.templatePicker.featureLayers[0].templates[0];
+                            }
+
+                            newGeometry = this.locationGeometry;
+
+                            var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
+                            var newGraphic = new Graphic(newGeometry, null, newAttributes);
+                            window.myDialog.setAttributes(newGraphic);
+                            selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
+
+                            window.map.graphics.clear();
+                            window.myDialog.hide();
+                            this.templatePicker.clearSelection();
+                            drawToolbar.deactivate();
+
+                            alert("Thank you for your survey submission.");
+
+                            //sbtest
+                            drawToolbar.activate(Draw.POINT);
+                          }
+                          catch (err) {
+                            console.log(err.description);
+                            alert("Sorry.  There was an error processing your submission");
+                            //sbtest
+                            drawToolbar.activate(Draw.POINT);
                           }
 
-                          newGeometry = this.locationGeometry;
-
-                          var newAttributes = lang.mixin({}, selectedTemplate.template.prototype.attributes);
-                          var newGraphic = new Graphic(newGeometry, null, newAttributes);
-                          window.myDialog.setAttributes(newGraphic);
-                          selectedTemplate.featureLayer.applyEdits([newGraphic], null, null);
-
-                          window.map.graphics.clear();
-                          window.myDialog.hide();
-                          this.templatePicker.clearSelection();
-                          drawToolbar.deactivate();
-
-                          alert("Thank you for your survey submission.");
-
-                          //sbtest
-                          drawToolbar.activate(Draw.POINT);
                         }));
 
                       });
